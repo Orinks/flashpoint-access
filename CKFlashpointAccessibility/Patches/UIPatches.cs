@@ -174,7 +174,9 @@ namespace CKFlashpointAccessibility.Patches
                 
                 if (!string.IsNullOrEmpty(text))
                 {
-                    SRALHelper.Speak($"{text}", true);
+                    // Clean up text - remove trailing numbers like " 56"
+                    text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+\d+$", "").Trim();
+                    SRALHelper.Speak(text, true);
                 }
                 else
                 {
@@ -311,6 +313,8 @@ namespace CKFlashpointAccessibility.Patches
                 string text = GetButtonText(__instance);
                 if (!string.IsNullOrEmpty(text))
                 {
+                    // Clean up text - remove trailing numbers
+                    text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+\d+$", "").Trim();
                     SRALHelper.Speak(text, true);
                 }
             }
