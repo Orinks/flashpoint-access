@@ -21,8 +21,8 @@ SRAL (Screen Reader Abstraction Library) doesn't have pre-built releases, so you
 ### Option 1: Using PowerShell (Recommended)
 
 ```powershell
-# 1. Clone the repository
-cd C:\Users\joshu\Flashpoint-access\tools
+# 1. Clone the repository (from the project root)
+cd tools
 git clone https://github.com/blindgoofball/SRAL.git
 cd SRAL
 
@@ -84,7 +84,7 @@ If you can't build from source, you can:
 Once you have `SRAL.dll`, the C# mod project will automatically copy it to the output when you build the mod:
 
 ```powershell
-cd C:\Users\joshu\Flashpoint-access\CKFlashpointAccessibility
+cd CKFlashpointAccessibility
 dotnet build
 ```
 

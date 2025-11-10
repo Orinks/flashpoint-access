@@ -1,23 +1,29 @@
-# Cyber Knights: Flashpoint Accessibility Mod Project
+# Cyber Knights: Flashpoint Accessibility Mod
 
-This workspace is set up to create accessibility modifications for Cyber Knights: Flashpoint using BepInEx and Tolk screen reader integration.
+A MelonLoader mod that adds screen reader accessibility to Cyber Knights: Flashpoint using SRAL (Screen Reader Abstraction Library) and Harmony runtime patching.
 
 ## Project Status
-- **Pre-Purchase Setup**: ✅ Complete development environment ready
-- **Code Implementation**: ✅ 3-tier text extraction with IL2CPP interop
-- **Debugging Tools**: ✅ Enhanced logging + UnityExplorer installer
-- **Next Step**: 🎮 Test in-game and report findings (see TESTING-WORKFLOW.md)
+- **Mod Status**: ✅ Fully functional - announces UI elements via screen reader
+- **Screen Reader Support**: NVDA, JAWS, SAPI, UIA, and braille displays
+- **Framework**: MelonLoader 0.6+ with IL2CPP interop
+- **Current Version**: 1.0.0
 
-## Quick Start (After Game Purchase)
+## Quick Start
 
+### For Users
 1. **Install the game** from [Steam](https://store.steampowered.com/app/1021210/Cyber_Knights_Flashpoint/)
-2. **Run the setup script**: `.\scripts\setup-melonloader.ps1`
-3. **Launch game once** to generate MelonLoader files
-4. **Update project references**: `.\scripts\update-references.ps1`
-5. **Build SRAL**: See `docs\building-sral.md` (screen reader library)
-6. **Deploy the mod**: `.\scripts\deploy-mod.ps1` (builds + copies to Mods/)
-7. **Enable debug logging**: Edit `UserData\MelonPreferences.cfg`, set `DebugTextExtraction = true`
-8. **Test and report**: Follow `TESTING-WORKFLOW.md`
+2. **Download the latest release** from the [Releases](https://github.com/Orinks/flashpoint-access/releases) page
+3. **Extract to game directory** (typically `C:\Program Files (x86)\Steam\steamapps\common\Cyber Knights Flashpoint`)
+4. **Launch the game** - screen reader will announce "Cyber Knights Flashpoint accessibility mod loaded successfully!"
+5. **Navigate with Tab/Arrow keys** - UI elements will be spoken automatically
+
+### For Developers
+1. **Clone this repository**: `git clone https://github.com/Orinks/flashpoint-access.git`
+2. **Run setup script**: `.\scripts\setup-melonloader.ps1`
+3. **Launch game once** to generate IL2CPP assemblies
+4. **Update references**: `.\scripts\update-references.ps1`
+5. **Build SRAL** (optional): See `docs\building-sral.md`
+6. **Deploy the mod**: `.\scripts\deploy-mod.ps1`
 
 ## Project Structure
 
@@ -44,38 +50,38 @@ Flashpoint-access/
 - `github.copilot` - GitHub Copilot
 - `github.copilot-chat` - GitHub Copilot Chat
 
-### After Game Purchase
-- **BepInEx IL2CPP x64**: Auto-downloaded by setup script
-- **Il2CppDumper**: Auto-downloaded by setup script
-- **Tolk**: Already included in `tools/tolk/`
+### Development Dependencies (Auto-Downloaded)
+- **MelonLoader**: IL2CPP mod loader framework
+- **SRAL**: Screen Reader Abstraction Library (build from source or use pre-built)
+
+## Features
+
+- **Menu Navigation**: All buttons and UI elements announce on focus
+- **Keyboard Navigation**: Full Tab/Arrow key support with auto-focus
+- **Multiple Screen Readers**: Works with NVDA, JAWS, Windows Narrator, and SAPI
+- **Braille Display Support**: Via SRAL library
+- **Configurable**: Settings in `UserData\MelonPreferences.cfg`
+- **Rate Limiting**: Prevents announcement spam
+- **Debug Logging**: Detailed logs for troubleshooting
 
 ## Development Workflow
 
-### Phase 1: Setup (Before Game Purchase) ✅
-- [x] Create project structure
-- [x] Set up VS Code workspace
-- [x] Create mod template with BepInEx plugin structure
-- [x] Integrate Tolk library references
-- [x] Create helper scripts
+### Setup
+1. Install game from Steam
+2. Run `scripts\setup-melonloader.ps1` to install MelonLoader
+3. Launch game once to generate IL2CPP assemblies
+4. Run `scripts\update-references.ps1` to configure project
 
-### Phase 2: Post-Purchase Setup
-1. Install game via Steam
-2. Run `scripts\setup-bepinex.ps1` to install BepInEx
-3. Launch game once to generate BepInEx folders
-4. Run `scripts\dump-il2cpp.ps1` to extract game assemblies
-5. Run `scripts\update-references.ps1` to configure project
+### Development
+1. Use IL2CPP dumps (`dumped/dump.cs`) to identify UI classes
+2. Write Harmony patches in `Patches/UIPatches.cs`
+3. Test with `.\scripts\deploy-mod.ps1`
+4. Check `MelonLoader\Latest.log` for debugging
 
-### Phase 3: Development
-1. Use Il2CppDumper output to understand game structure
-2. Write Harmony patches for UI components
-3. Integrate Tolk for screen reader output
-4. Test with NVDA/JAWS
-5. Iterate and expand features
-
-### Phase 4: Distribution
-1. Build release version
-2. Package with instructions
-3. Share on Steam forums/Reddit
+### Distribution
+1. Build release configuration
+2. Package mod DLL + SRAL dependencies
+3. Create GitHub release with installation instructions
 
 ## Key Technologies
 
@@ -84,58 +90,100 @@ Flashpoint-access/
 - **SRAL**: Screen Reader Abstraction Library (NVDA, JAWS, SAPI, etc.)
 - **.NET 6**: Modern C# development
 
-## Accessibility Features Roadmap
+## How It Works
 
-| Priority | Feature | Implementation |
-|----------|---------|----------------|
-| P0 | Mod load announcement | Direct Tolk call on Awake |
-| P0 | Menu navigation speech | Patch `Selectable.OnSelect()` |
-| P1 | Button/UI element reading | Patch `EventSystem` selection |
-| P1 | Keyboard navigation hints | Hook Input system |
-| P2 | Combat HUD narration | Game-specific class patches |
-| P2 | Dynamic content updates | Periodic UI scanning |
-| P3 | Configuration options | BepInEx config file |
+The mod uses runtime patching to intercept Unity UI events:
+
+1. **MelonLoader** loads the mod on game startup
+2. **Harmony patches** intercept UI events (`OnSelect`, `OnPointerClick`, etc.)
+3. **Text extraction** uses reflection to read from IL2CPP game components
+4. **SRAL** announces text via active screen reader (NVDA, JAWS, etc.)
+5. **Rate limiting** prevents duplicate announcements
+
+See [IMPLEMENTATION-NOTES.md](IMPLEMENTATION-NOTES.md) for technical details.
 
 ## Resources
 
 ### Official Links
 - **Game**: https://store.steampowered.com/app/1021210/Cyber_Knights_Flashpoint/
-- **BepInEx**: https://github.com/BepInEx/BepInEx
-- **Il2CppDumper**: https://github.com/Perfare/Il2CppDumper
-- **Tolk**: https://github.com/dkager/tolk
-- **HarmonyX**: https://github.com/BepInEx/HarmonyX
+- **MelonLoader**: https://github.com/LavaGang/MelonLoader
+- **SRAL**: https://github.com/blindgoofball/SRAL
+- **Harmony**: https://harmony.pardeike.net/
 
-### Learning Materials
-- BepInEx IL2CPP Plugin Guide: https://docs.bepinex.dev/articles/dev_guide/plugin_tutorial/
-- Harmony Documentation: https://harmony.pardeike.net/
-- Unity Scripting Reference: https://docs.unity3d.com/ScriptReference/
+### Documentation
+- [Implementation Notes](IMPLEMENTATION-NOTES.md) - Technical architecture
+- [Testing Guide](TESTING-GUIDE.md) - How to test the mod
+- [UI Classes to Patch](UI-CLASSES-TO-PATCH.md) - IL2CPP class reference
 
-## Implementation Highlights
+## Technical Highlights
 
-- **3-Tier Text Extraction**: Direct IL2CPP access → Reflection with 3 assembly names → Private field access
-- **Enhanced Debug Logging**: Logs all component types, assemblies, and text properties for troubleshooting
-- **MelonLoader 0.6 + CoreCLR**: Modern .NET 6 IL2CPP interop (not legacy Unhollower)
-- **SRAL Integration**: Multi-screen-reader support (NVDA, JAWS, SAPI, UIA, braille displays)
-- **Automated Tooling**: UnityExplorer installer, deployment scripts, reference updater
+- **Runtime Type Resolution**: No compile-time dependencies on game types
+- **IL2CPP Interop**: Uses `AccessTools` and reflection for game assembly access
+- **Multi-Screen-Reader Support**: SRAL handles NVDA, JAWS, SAPI, UIA, braille
+- **Private Field Access**: Extracts text from custom `STETextBlock` components
+- **Harmony Patching**: Intercepts `OnSelect`, `OnDeselect`, and other UI events
+- **Rate Limiting**: 100ms delay between announcements to prevent spam
+- **Automated Deployment**: PowerShell scripts for building and testing
 
-See `PLAN-IMPLEMENTATION-STATUS.md` for detailed comparison with troubleshooting plan.
+## Configuration
 
-## Notes
+Edit `UserData\MelonPreferences.cfg` in the game directory:
 
-- **Game Architecture**: Unity IL2CPP (confirmed by Steam page tech specs)
-- **Expected Files**: `GameAssembly.dll`, `global-metadata.dat`
-- **Default Install Path**: `C:\Program Files (x86)\Steam\steamapps\common\Cyber Knights Flashpoint`
-- **This is pioneering work**: No existing accessibility mods found as of Nov 2024
-- **Screen Reader Friendly Development**: MelonLoader console output works with NVDA/JAWS
+```ini
+[CK_Flashpoint_Accessibility]
+Enabled = true
+AnnounceButtons = true
+AnnounceMenuItems = true
+SpeechDelay = 100
+InterruptSpeech = true
+DebugTextExtraction = false
+```
 
 ## Troubleshooting
 
-See `docs/troubleshooting.md` for common issues and solutions.
+**Mod not loading?**
+- Check `MelonLoader\Latest.log` for errors
+- Ensure `SRAL.dll` is in the `Mods` folder
+- Verify screen reader (NVDA/JAWS) is running
+
+**No speech output?**
+- SRAL initialization message should appear in log
+- Try restarting your screen reader
+- Check Windows speech settings
+
+**Text not extracted correctly?**
+- Enable debug logging: `DebugTextExtraction = true`
+- Check log for component type information
+- Report issue with log excerpts
+
+## Contributing
+
+This is an open-source accessibility project! Contributions are welcome:
+
+- **Bug Reports**: Open an issue describing the problem
+- **Feature Requests**: Suggest new accessibility features
+- **Pull Requests**: Submit improvements to text extraction or UI coverage
+- **Testing**: Help test with different screen readers (NVDA, JAWS, Narrator)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Third-Party Licenses
+
+- **SRAL**: See `tools/SRAL/LICENSE` (Screen Reader Abstraction Library)
+- **MelonLoader**: LGPLv3 (https://github.com/LavaGang/MelonLoader)
+- **Harmony**: MIT (https://github.com/pardeike/Harmony)
+- **Il2CppInterop**: LGPL (https://github.com/BepInEx/Il2CppInterop)
 
 ## Credits
 
 Created for accessibility improvements to make Cyber Knights: Flashpoint playable with screen readers.
 
-**Developer**: Joshua (2025)
-**Framework**: BepInEx + Tolk
-**AI Assistant**: GitHub Copilot (Claude 3.5 Sonnet)
+**Developer**: Joshua Orinks ([@Orinks](https://github.com/Orinks))
+**Framework**: MelonLoader + SRAL
+**AI Assistant**: GitHub Copilot (Claude Sonnet 4.5)
+
+## Disclaimer
+
+This is an independent accessibility mod and is not affiliated with or endorsed by Trese Brothers, the developers of Cyber Knights: Flashpoint.

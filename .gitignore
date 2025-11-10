@@ -28,6 +28,13 @@ dumped/
 .DS_Store
 Thumbs.db
 
+# Logs and debug files
+*.log
+speech-trace.txt
+accessibility-*.log
+full-debug.log
+types.txt
+
 # Don't ignore the built SRAL.dll we need
 !tools/sral/SRAL.dll
 !tools/sral/*.dll
