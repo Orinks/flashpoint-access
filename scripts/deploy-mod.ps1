@@ -77,26 +77,41 @@ if (-not (Test-Path $modsDir)) {
 Write-Host ""
 Write-Host "Deploying mod files..." -ForegroundColor Cyan
 
-$filesToCopy = @(
-    "CKFlashpointAccessibility.dll",
+# Mod DLL goes to Mods folder
+$modFiles = @("CKFlashpointAccessibility.dll")
+
+# Tolk and dependencies go to GAME ROOT (Tolk.dll needs to find its dependencies in same directory)
+$tolkFiles = @(
     "Tolk.dll",
     "nvdaControllerClient64.dll",
     "SAAPI64.dll"
 )
 
 $copiedCount = 0
-foreach ($file in $filesToCopy) {
+
+# Copy mod DLL to Mods folder
+foreach ($file in $modFiles) {
     $source = Join-Path $buildOutput $file
     if (Test-Path $source) {
         Copy-Item -Path $source -Destination $modsDir -Force
-        Write-Host "  ✓ Copied: $file" -ForegroundColor Green
+        Write-Host "  ✓ Copied to Mods: $file" -ForegroundColor Green
         $copiedCount++
     } else {
-        if ($file -eq "CKFlashpointAccessibility.dll") {
-            Write-Host "  ERROR: Required file missing: $file" -ForegroundColor Red
-        } else {
-            Write-Host "  ⚠ Optional file not found: $file" -ForegroundColor Yellow
-        }
+        Write-Host "  ERROR: Required file missing: $file" -ForegroundColor Red
+    }
+}
+
+# Copy Tolk and dependencies to game root directory (required for Tolk to find NVDA/SAPI DLLs)
+Write-Host ""
+Write-Host "Deploying Tolk dependencies to game root..." -ForegroundColor Cyan
+foreach ($file in $tolkFiles) {
+    $source = Join-Path $buildOutput $file
+    if (Test-Path $source) {
+        Copy-Item -Path $source -Destination $GamePath -Force
+        Write-Host "  ✓ Copied to root: $file" -ForegroundColor Green
+        $copiedCount++
+    } else {
+        Write-Host "  ⚠ Optional file not found: $file" -ForegroundColor Yellow
     }
 }
 
