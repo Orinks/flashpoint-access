@@ -1,0 +1,36 @@
+# Build output
+bin/
+obj/
+*.dll
+*.pdb
+*.cache
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Tools and temp files
+tools/SRAL/build/
+tools/tolk-temp/
+tools/*.zip
+dumped/
+
+# Visual Studio
+.vs/
+*.vscode/
+
+# Rider
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Don't ignore the built SRAL.dll we need
+!tools/sral/SRAL.dll
+!tools/sral/*.dll
+
+# Keep documentation
+!*.md
