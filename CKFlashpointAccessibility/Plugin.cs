@@ -123,55 +123,66 @@ namespace CKFlashpointAccessibility
 
             _logger = logger;
 
-            // Try engines in order of preference:
-            // 1. NVDA (we'll use direct controller for speech, but SRAL for braille)
-            // 2. JAWS (commercial screen reader)
-            // 3. SAPI (Windows built-in TTS - good fallback)
-            // 4. UIA (last resort, known issues)
-            
-            _logger?.Msg("Attempting SRAL initialization with ENGINE_NVDA...");
-            if (!SRAL.SRAL_Initialize(SRAL.Engine.ENGINE_NVDA))
+            // Initialize Tolk (better than SRAL - no string truncation bug)
+            try
             {
-                _logger?.Warning("ENGINE_NVDA initialization failed, trying ENGINE_JAWS...");
+                _logger?.Msg("Initializing Tolk screen reader library...");
                 
-                if (!SRAL.SRAL_Initialize(SRAL.Engine.ENGINE_JAWS))
+                try
                 {
-                    _logger?.Warning("ENGINE_JAWS initialization failed, trying ENGINE_SAPI...");
+                    // Enable SAPI as fallback
+                    _logger?.Msg("Enabling SAPI fallback...");
+                    Tolk.Tolk_TrySAPI(true);
                     
-                    if (!SRAL.SRAL_Initialize(SRAL.Engine.ENGINE_SAPI))
-                    {
-                        _logger?.Warning("ENGINE_SAPI initialization failed, trying ENGINE_UIA...");
-                        
-                        // Last resort: UIA (avoid if possible)
-                        if (!SRAL.SRAL_Initialize(SRAL.Engine.ENGINE_UIA))
-                        {
-                            _logger?.Error("All SRAL engines failed!");
-                            throw new Exception("Failed to initialize any SRAL engine");
-                        }
-                        _logger?.Warning("Using ENGINE_UIA (last resort, may have issues)");
-                    }
-                    else
-                    {
-                        _logger?.Msg("Successfully initialized with ENGINE_SAPI");
-                    }
+                    _logger?.Msg("Setting SAPI preference to false...");
+                    // Don't prefer SAPI - use screen readers first
+                    Tolk.Tolk_PreferSAPI(false);
+                }
+                catch (Exception sapEx)
+                {
+                    _logger?.Warning($"SAPI configuration failed (non-fatal): {sapEx.Message}");
+                }
+                
+                // Load Tolk
+                _logger?.Msg("Calling Tolk_Load()...");
+                Tolk.Tolk_Load();
+                _logger?.Msg("Tolk_Load() returned");
+                
+                _logger?.Msg("Checking if Tolk is loaded...");
+                if (Tolk.Tolk_IsLoaded())
+                {
+                    _logger?.Msg("Detecting screen reader...");
+                    string screenReader = Tolk.Tolk_DetectScreenReader();
+                    
+                    _logger?.Msg("Checking capabilities...");
+                    bool hasSpeech = Tolk.Tolk_HasSpeech();
+                    bool hasBraille = Tolk.Tolk_HasBraille();
+                    
+                    _logger?.Msg($"Tolk initialized successfully!");
+                    _logger?.Msg($"Detected screen reader: {screenReader ?? "None (using SAPI)"}");
+                    _logger?.Msg($"Speech support: {hasSpeech}, Braille support: {hasBraille}");
+                    
+                    _isInitialized = true;
                 }
                 else
                 {
-                    _logger?.Msg("Successfully initialized with ENGINE_JAWS");
+                    _logger?.Error("Tolk_IsLoaded() returned false");
+                    throw new Exception("Failed to initialize Tolk");
                 }
             }
-            else
+            catch (DllNotFoundException dllEx)
             {
-                _logger?.Msg("Successfully initialized with ENGINE_NVDA (will use direct controller for speech)");
+                _logger?.Error($"Tolk DLL not found: {dllEx.Message}");
+                _logger?.Error("Make sure Tolk.dll and its dependencies are in the Mods folder");
+                throw;
             }
-
-            var engine = SRAL.SRAL_GetCurrentEngine();
-            var features = SRAL.SRAL_GetEngineFeatures(0);
-            
-            _logger?.Msg($"SRAL initialized with engine: {engine}");
-            _logger?.Msg($"Engine features: {features}");
-
-            _isInitialized = true;
+            catch (Exception ex)
+            {
+                _logger?.Error($"Tolk initialization failed: {ex.Message}");
+                _logger?.Error($"Exception type: {ex.GetType().Name}");
+                _logger?.Error($"Stack trace: {ex.StackTrace}");
+                throw;
+            }
         }
 
         public static void Speak(string text, bool interrupt = false)
@@ -187,44 +198,11 @@ namespace CKFlashpointAccessibility
 
             try
             {
-                _logger?.Msg($"[Speech] Speaking: \"{text}\" (interrupt={interrupt}, length={text.Length})");
+                _logger?.Msg($"[Tolk] Speaking: \"{text}\" (interrupt={interrupt}, length={text.Length})");
                 
-                bool speechSuccess = false;
-                
-                // Try NVDA controller client directly first (bypasses SRAL's buggy implementation)
-                if (NVDAController.IsNVDARunning())
-                {
-                    if (interrupt)
-                    {
-                        NVDAController.StopSpeech();
-                    }
-                    speechSuccess = NVDAController.Speak(text);
-                    _logger?.Msg($"[NVDA Direct] Result: {speechSuccess}");
-                }
-                
-                // Try native SAPI if NVDA not available (bypasses SRAL's buggy implementation)
-                if (!speechSuccess && SAPIController.Initialize())
-                {
-                    speechSuccess = SAPIController.Speak(text, interrupt);
-                    _logger?.Msg($"[SAPI Direct] Result: {speechSuccess}");
-                }
-                
-                // Last resort: Use SRAL (has string truncation bug but better than nothing)
-                if (!speechSuccess)
-                {
-                    _logger?.Warning("[Speech] Falling back to SRAL (may only read first character)");
-                    SRAL.SRAL_Speak(text, interrupt);
-                }
-                
-                // Always send to braille via SRAL (supports multiple braille displays)
-                try
-                {
-                    SRAL.SRAL_Braille(text);
-                }
-                catch (Exception brailleEx)
-                {
-                    _logger?.Warning($"Braille output failed: {brailleEx.Message}");
-                }
+                // Use Tolk_Output which handles both speech and braille automatically
+                bool success = Tolk.Tolk_Output(text, interrupt);
+                _logger?.Msg($"[Tolk] Output result: {success}");
                 
                 _lastSpeechTime = now;
             }
@@ -253,16 +231,21 @@ namespace CKFlashpointAccessibility
         public static void Silence()
         {
             if (!_isInitialized) return;
-            SRAL.SRAL_StopSpeech();
+            Tolk.Tolk_Silence();
+        }
+
+        public static void Uninitialize()
+        {
+            if (!_isInitialized) return;
+            
+            _logger?.Msg("Uninitializing Tolk...");
+            Tolk.Tolk_Unload();
+            _isInitialized = false;
         }
 
         public static void Shutdown()
         {
-            if (!_isInitialized) return;
-            
-            SRAL.SRAL_Uninitialize();
-            _isInitialized = false;
-            _logger?.Msg("SRAL shut down.");
+            Uninitialize();
         }
     }
 }

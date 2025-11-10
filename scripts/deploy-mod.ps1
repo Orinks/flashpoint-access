@@ -79,8 +79,9 @@ Write-Host "Deploying mod files..." -ForegroundColor Cyan
 
 $filesToCopy = @(
     "CKFlashpointAccessibility.dll",
-    "SRAL.dll",
-    "nvdaControllerClient64.dll"
+    "Tolk.dll",
+    "nvdaControllerClient64.dll",
+    "SAAPI64.dll"
 )
 
 $copiedCount = 0
