@@ -27,28 +27,36 @@ namespace CKFlashpointAccessibility
         /// Returns true if a screen reader is detected.
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool Tolk_IsLoaded();
 
         /// <summary>
-        /// Detects and returns the name of the active screen reader, or null if none is active.
+        /// Native function to detect the active screen reader.
+        /// Returns IntPtr that must be manually converted - automatic marshaling can cause crashes.
         /// </summary>
-        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
-        [return: MarshalAs(UnmanagedType.LPWStr)]
-        public static extern string Tolk_DetectScreenReader();
+        [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode, EntryPoint = "Tolk_DetectScreenReader")]
+        private static extern IntPtr Tolk_DetectScreenReader_Native();
+
+        /// <summary>
+        /// Safe wrapper for Tolk_DetectScreenReader that manually converts the native string pointer.
+        /// </summary>
+        public static string Tolk_DetectScreenReader()
+        {
+            IntPtr ptr = Tolk_DetectScreenReader_Native();
+            if (ptr == IntPtr.Zero)
+                return null;
+            return Marshal.PtrToStringUni(ptr);
+        }
 
         /// <summary>
         /// Returns true if the current screen reader supports speech.
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool Tolk_HasSpeech();
 
         /// <summary>
         /// Returns true if the current screen reader supports braille.
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool Tolk_HasBraille();
 
         /// <summary>
@@ -58,8 +66,7 @@ namespace CKFlashpointAccessibility
         /// <param name="interrupt">Whether to interrupt currently speaking text</param>
         /// <returns>True if successful</returns>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool Tolk_Output([MarshalAs(UnmanagedType.LPWStr)] string text, [MarshalAs(UnmanagedType.I1)] bool interrupt);
+        public static extern bool Tolk_Output(string text, bool interrupt);
 
         /// <summary>
         /// Speaks text through the screen reader.
@@ -68,8 +75,7 @@ namespace CKFlashpointAccessibility
         /// <param name="interrupt">Whether to interrupt currently speaking text</param>
         /// <returns>True if successful</returns>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool Tolk_Speak([MarshalAs(UnmanagedType.LPWStr)] string text, [MarshalAs(UnmanagedType.I1)] bool interrupt);
+        public static extern bool Tolk_Speak(string text, bool interrupt);
 
         /// <summary>
         /// Outputs text to braille display.
@@ -77,15 +83,13 @@ namespace CKFlashpointAccessibility
         /// <param name="text">The text to display in braille</param>
         /// <returns>True if successful</returns>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool Tolk_Braille([MarshalAs(UnmanagedType.LPWStr)] string text);
+        public static extern bool Tolk_Braille(string text);
 
         /// <summary>
         /// Silences the screen reader's speech output.
         /// </summary>
         /// <returns>True if successful</returns>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool Tolk_Silence();
 
         /// <summary>
@@ -93,7 +97,6 @@ namespace CKFlashpointAccessibility
         /// Note: Not all screen readers support this query.
         /// </summary>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool Tolk_IsSpeaking();
 
         /// <summary>
@@ -101,13 +104,13 @@ namespace CKFlashpointAccessibility
         /// </summary>
         /// <param name="trySAPI">True to enable SAPI, false to disable</param>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Tolk_TrySAPI([MarshalAs(UnmanagedType.I1)] bool trySAPI);
+        public static extern void Tolk_TrySAPI(bool trySAPI);
 
         /// <summary>
         /// Sets whether SAPI should be preferred over screen readers.
         /// </summary>
         /// <param name="preferSAPI">True to prefer SAPI, false to prefer screen readers</param>
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Tolk_PreferSAPI([MarshalAs(UnmanagedType.I1)] bool preferSAPI);
+        public static extern void Tolk_PreferSAPI(bool preferSAPI);
     }
 }
