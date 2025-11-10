@@ -76,6 +76,19 @@ namespace CKFlashpointAccessibility
             }
         }
 
+        public override void OnUpdate()
+        {
+            // Call character creation navigation update
+            try
+            {
+                CharacterCreationNavigation.Update();
+            }
+            catch (Exception ex)
+            {
+                LoggerInstance.Error($"Error in CharacterCreationNavigation.Update: {ex.Message}");
+            }
+        }
+
         private static bool _patchesApplied = false;
 
         private void ApplyPatches()
@@ -190,12 +203,6 @@ namespace CKFlashpointAccessibility
             if (!_isInitialized || string.IsNullOrWhiteSpace(text))
                 return;
 
-            // Rate limiting
-            var now = DateTime.Now;
-            var delay = CKAccessibilityMod.SpeechDelay;
-            if ((now - _lastSpeechTime).TotalMilliseconds < delay && !interrupt)
-                return;
-
             try
             {
                 _logger?.Msg($"[Tolk] Speaking: \"{text}\" (interrupt={interrupt}, length={text.Length})");
@@ -203,8 +210,6 @@ namespace CKFlashpointAccessibility
                 // Use Tolk_Output which handles both speech and braille automatically
                 bool success = Tolk.Tolk_Output(text, interrupt);
                 _logger?.Msg($"[Tolk] Output result: {success}");
-                
-                _lastSpeechTime = now;
             }
             catch (Exception ex)
             {

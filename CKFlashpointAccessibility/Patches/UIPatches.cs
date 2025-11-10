@@ -34,6 +34,15 @@ namespace CKFlashpointAccessibility.Patches
     /// </summary>
     public static class UIPatches
     {
+        // Text tracking for deduplication
+        private static Dictionary<string, DateTime> _recentTextUpdates = new Dictionary<string, DateTime>();
+        private static readonly TimeSpan TextDeduplicationWindow = TimeSpan.FromMilliseconds(500);
+        
+        // Character creation screen flood prevention
+        private static bool _inCharacterCreation = false;
+        private static DateTime _characterCreationEnterTime = DateTime.MinValue;
+        private static readonly TimeSpan CharacterCreationInitDelay = TimeSpan.FromSeconds(2);
+        
         /// <summary>
         /// Apply all UI patches using runtime type resolution
         /// </summary>
@@ -99,6 +108,38 @@ namespace CKFlashpointAccessibility.Patches
                     postfix: nameof(Screen_Training_Show_Postfix));
                 PatchType(harmony, gameAssembly, "Il2CppScreen_Cyberdeck", "Show",
                     postfix: nameof(Screen_Cyberdeck_Show_Postfix));
+
+                // Patch options menu controls - STESelectInput (dropdowns)
+                // STESelectInput inherits from STEWidgetInputBase which implements OnSelect
+                PatchType(harmony, gameAssembly, "Il2CppRPG.UI.Widgets.Inputs.STESelectInput", "Select",
+                    postfix: nameof(STESelectInput_Select_Postfix));
+                PatchType(harmony, gameAssembly, "Il2CppRPG.UI.Widgets.Inputs.STESelectInput", "SetIndex",
+                    postfix: nameof(STESelectInput_SetIndex_Postfix));
+
+                // Patch STEDefaultSliderWrapper - Used by sliders, inherits from Unity Slider
+                PatchType(harmony, gameAssembly, "Il2CppRPG.UI.Widgets.STEDefaultSliderWrapper", "OnSelect",
+                    postfix: nameof(STEDefaultSliderWrapper_OnSelect_Postfix));
+
+                // Patch STETabMenu for tab navigation announcements
+                PatchType(harmony, gameAssembly, "Il2CppRPG.UI.Widgets.Tabs.STETabMenu", "SelectTab",
+                    postfix: nameof(STETabMenu_SelectTab_Postfix));
+
+                // Add catch-all Unity Selectable patch to see ALL selections
+                try
+                {
+                    var selectableType = typeof(UnityEngine.UI.Selectable);
+                    var onSelectMethod = AccessTools.Method(selectableType, "OnSelect");
+                    if (onSelectMethod != null)
+                    {
+                        var postfixMethod = AccessTools.Method(typeof(UIPatches), nameof(Unity_Selectable_OnSelect_Postfix));
+                        harmony.Patch(onSelectMethod, postfix: new HarmonyMethod(postfixMethod));
+                        MelonLoader.MelonLogger.Msg("Patched: Unity Selectable.OnSelect (catch-all for debugging)");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MelonLoader.MelonLogger.Warning($"Failed to patch Unity Selectable.OnSelect: {ex.Message}");
+                }
 
                 MelonLoader.MelonLogger.Msg("All UI patches applied successfully");
             }
@@ -176,6 +217,19 @@ namespace CKFlashpointAccessibility.Patches
                 {
                     // Clean up text - remove trailing numbers like " 56"
                     text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+\d+$", "").Trim();
+                    
+                    // Remove parenthetical tags like "(Corp Knowledge)"
+                    text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*\([^)]+\)\s*", " ").Trim();
+                    
+                    // Remove trailing dashes from truncated text
+                    text = text.TrimEnd('-', ' ');
+                    
+                    // Detect navigation away from character creation screens
+                    if (text == "Back" || text == "Next" || text == "Prev")
+                    {
+                        CharacterCreationNavigation.ExitAttributeScreen();
+                    }
+                    
                     SRALHelper.Speak(text, true);
                 }
                 else
@@ -210,7 +264,104 @@ namespace CKFlashpointAccessibility.Patches
 
                 if (!string.IsNullOrEmpty(t))
                 {
-                    SRALHelper.Speak(t, false);
+                    // Filter out UI noise - only announce substantial text (story, dialog, etc.)
+                    // Skip: single characters, numbers only, very short text, common UI labels
+                    if (t.Length < 3) return;
+                    if (System.Text.RegularExpressions.Regex.IsMatch(t, @"^\d+$")) return; // Skip pure numbers
+                    if (System.Text.RegularExpressions.Regex.IsMatch(t, @"^[\d\.,\-%]+$")) return; // Skip numbers with symbols
+                    
+                    // Skip common UI labels and categories
+                    string[] skipLabels = { "HP", "AP", "XP", "SP", "Level", "Cost", "Max", "Min", "Total", "OK", "Cancel",
+                        "Body", "Suit", "Face", "Hair", "Eyes", "Eyebrows", "Cybernetics", "Tattoo", "Piercings",
+                        "Hat", "Mask", "Helmet", "Backpack", "Eye Accessory", "Face Details" };
+                    if (skipLabels.Any(label => t.Equals(label, StringComparison.OrdinalIgnoreCase))) return;
+                    
+                    // Get the GameObject name for context
+                    var monoBehaviour = __instance as MonoBehaviour;
+                    string objectName = monoBehaviour != null ? monoBehaviour.gameObject.name : "unknown";
+                    
+                    // Deduplication: Skip if same text was announced recently
+                    var now = DateTime.Now;
+                    if (_recentTextUpdates.TryGetValue(t, out DateTime lastTime))
+                    {
+                        if ((now - lastTime) < TextDeduplicationWindow)
+                        {
+                            MelonLoader.MelonLogger.Msg($"[Accessibility] STETextBlock.SetText - SKIPPED (duplicate): \"{t.Substring(0, Math.Min(50, t.Length))}...\"");
+                            return;
+                        }
+                    }
+                    _recentTextUpdates[t] = now;
+                    
+                    // Clean up old entries from dictionary (keep only last 100)
+                    if (_recentTextUpdates.Count > 100)
+                    {
+                        var oldEntries = _recentTextUpdates.Where(kvp => (now - kvp.Value) > TimeSpan.FromSeconds(10)).ToList();
+                        foreach (var entry in oldEntries)
+                        {
+                            _recentTextUpdates.Remove(entry.Key);
+                        }
+                    }
+                    
+                    // Log for debugging
+                    MelonLoader.MelonLogger.Msg($"[Accessibility] STETextBlock.SetText - Object: \"{objectName}\", Text: \"{t.Substring(0, Math.Min(50, t.Length))}...\"");
+                    
+                    // Detect character creation screen entering
+                    if (t.Contains("Create your Knight") || (t.Contains("Assign Attributes") && !_inCharacterCreation))
+                    {
+                        MelonLoader.MelonLogger.Msg("[Accessibility] Entering character creation screen");
+                        _inCharacterCreation = true;
+                        _characterCreationEnterTime = DateTime.Now;
+                        
+                        // Announce just the screen title
+                        if (t.Contains("Create your Knight"))
+                        {
+                            SRALHelper.Speak("Create your Knight screen. Use Tab to navigate between sections, arrow keys within sections.", false);
+                            return; // Don't announce again below
+                        }
+                    }
+                    
+                    // Suppress text flood during character creation screen initialization (first 2 seconds)
+                    if (_inCharacterCreation && (DateTime.Now - _characterCreationEnterTime) < CharacterCreationInitDelay)
+                    {
+                        // Only announce these specific items during init
+                        if (t.Contains("Wasteland Coyote") || t.Contains("Corp Employee") || 
+                            t.Contains("Smuggler") || t.Contains("description that describes"))
+                        {
+                            // Allow backstory selection to be announced
+                        }
+                        else
+                        {
+                            MelonLoader.MelonLogger.Msg($"[Accessibility] SUPPRESSED during char creation init: \"{t.Substring(0, Math.Min(30, t.Length))}...\"");
+                            return;
+                        }
+                    }
+                    
+                    // Detect attributes screen
+                    if (t.Contains("Assign Attributes") || t.Contains("Assign your free Attribute points"))
+                    {
+                        MelonLoader.MelonLogger.Msg("[Accessibility] Detected Attributes screen");
+                        MelonLoader.MelonCoroutines.Start(EnterAttributeScreenDelayed());
+                    }
+                    
+                    // Calculate delay based on text length to allow typing animation to complete
+                    // Short dialog text (< 100 chars) gets no delay
+                    // Long story text gets delay to let animation complete
+                    int delayMs = 0;
+                    if (t.Length > 100 && !t.Contains("Abandon") && !objectName.Contains("Title") && !objectName.Contains("Desc"))
+                    {
+                        delayMs = Math.Min(3000, t.Length * 50); // Max 3 seconds, 50ms per character
+                    }
+                    
+                    if (delayMs > 0)
+                    {
+                        // Use MelonCoroutines for delayed announcement
+                        MelonLoader.MelonCoroutines.Start(DelayedAnnounce(t, delayMs));
+                    }
+                    else
+                    {
+                        // Announce immediately for short text/dialogs
+                        SRALHelper.Speak(t, false);
+                    }
                 }
             }
             catch (Exception ex)
@@ -448,6 +599,330 @@ namespace CKFlashpointAccessibility.Patches
             catch (Exception ex)
             {
                 MelonLoader.MelonLogger.Error($"Error in Screen_Cyberdeck_Show: {ex.Message}");
+            }
+        }
+
+        // ========== OPTIONS MENU CONTROLS ==========
+
+        public static void STESelectInput_Select_Postfix(object __instance)
+        {
+            try
+            {
+                if (!CKAccessibilityMod.AnnounceMenuItems) return;
+
+                var monoBehaviour = __instance as MonoBehaviour;
+                if (monoBehaviour == null) return;
+
+                // Get the label and current value
+                var labelField = __instance.GetType().GetField("label", BindingFlags.NonPublic | BindingFlags.Instance);
+                var dropdownField = __instance.GetType().GetField("m_Dropdown", BindingFlags.NonPublic | BindingFlags.Instance);
+                
+                string labelText = "";
+                string currentValue = "";
+
+                if (labelField != null)
+                {
+                    var labelObj = labelField.GetValue(__instance);
+                    if (labelObj != null)
+                    {
+                        var textProp = labelObj.GetType().GetProperty("text");
+                        if (textProp != null)
+                        {
+                            labelText = textProp.GetValue(labelObj)?.ToString() ?? "";
+                        }
+                    }
+                }
+
+                if (dropdownField != null)
+                {
+                    var dropdownObj = dropdownField.GetValue(__instance);
+                    if (dropdownObj != null)
+                    {
+                        // Try to get value property
+                        var valueProp = dropdownObj.GetType().GetProperty("value");
+                        if (valueProp != null)
+                        {
+                            var valueIndex = valueProp.GetValue(dropdownObj);
+                            
+                            // Get options list
+                            var optionsProp = dropdownObj.GetType().GetProperty("options");
+                            if (optionsProp != null)
+                            {
+                                var options = optionsProp.GetValue(dropdownObj);
+                                if (options != null && valueIndex != null)
+                                {
+                                    // Access the list and get the item at index
+                                    var listType = options.GetType();
+                                    var indexer = listType.GetProperty("Item");
+                                    if (indexer != null)
+                                    {
+                                        var option = indexer.GetValue(options, new object[] { valueIndex });
+                                        if (option != null)
+                                        {
+                                            var textProp = option.GetType().GetProperty("text");
+                                            if (textProp != null)
+                                            {
+                                                currentValue = textProp.GetValue(option)?.ToString() ?? "";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                string announcement = string.IsNullOrEmpty(labelText) 
+                    ? $"Dropdown, {currentValue}"
+                    : $"{labelText}, {currentValue}";
+                
+                MelonLoader.MelonLogger.Msg($"[Accessibility] Dropdown selected - Label: \"{labelText}\", Value: \"{currentValue}\", Full: \"{announcement}\"");
+                SRALHelper.Speak(announcement, true);
+            }
+            catch (Exception ex)
+            {
+                MelonLoader.MelonLogger.Error($"Error in STESelectInput_Select: {ex.Message}");
+            }
+        }
+
+        public static void STESelectInput_SetIndex_Postfix(object __instance, int index)
+        {
+            try
+            {
+                if (!CKAccessibilityMod.AnnounceMenuItems) return;
+
+                // Get the text for the new index
+                var dropdownField = __instance.GetType().GetField("m_Dropdown", BindingFlags.NonPublic | BindingFlags.Instance);
+                
+                if (dropdownField != null)
+                {
+                    var dropdownObj = dropdownField.GetValue(__instance);
+                    if (dropdownObj != null)
+                    {
+                        var optionsProp = dropdownObj.GetType().GetProperty("options");
+                        if (optionsProp != null)
+                        {
+                            var options = optionsProp.GetValue(dropdownObj);
+                            if (options != null)
+                            {
+                                var listType = options.GetType();
+                                var indexer = listType.GetProperty("Item");
+                                if (indexer != null)
+                                {
+                                    var option = indexer.GetValue(options, new object[] { index });
+                                    if (option != null)
+                                    {
+                                        var textProp = option.GetType().GetProperty("text");
+                                        if (textProp != null)
+                                        {
+                                            var text = textProp.GetValue(option)?.ToString() ?? "";
+                                            if (!string.IsNullOrEmpty(text))
+                                            {
+                                                SRALHelper.Speak(text, true);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MelonLoader.MelonLogger.Error($"Error in STESelectInput_SetIndex: {ex.Message}");
+            }
+        }
+
+        public static void STEDefaultSliderWrapper_OnSelect_Postfix(object __instance, BaseEventData eventData)
+        {
+            try
+            {
+                if (!CKAccessibilityMod.AnnounceMenuItems) return;
+
+                var slider = __instance as Slider;
+                if (slider == null) return;
+
+                float value = slider.value;
+                float min = slider.minValue;
+                float max = slider.maxValue;
+                
+                // Try to find parent STEInputSlider or other slider component with label
+                string label = "";
+                var transform = slider.transform;
+                while (transform != null && string.IsNullOrEmpty(label))
+                {
+                    // Check for STEInputSlider parent
+                    var inputSlider = transform.GetComponent<MonoBehaviour>();
+                    if (inputSlider != null && inputSlider.GetType().Name == "STEInputSlider")
+                    {
+                        // Try to get nameTextBlock field
+                        var nameField = inputSlider.GetType().GetField("nameTextBlock", BindingFlags.NonPublic | BindingFlags.Instance);
+                        if (nameField != null)
+                        {
+                            var textBlock = nameField.GetValue(inputSlider);
+                            if (textBlock != null)
+                            {
+                                var textProp = textBlock.GetType().GetProperty("text");
+                                if (textProp != null)
+                                {
+                                    label = textProp.GetValue(textBlock)?.ToString() ?? "";
+                                }
+                            }
+                        }
+                    }
+                    transform = transform.parent;
+                }
+
+                // Fallback to GameObject name
+                if (string.IsNullOrEmpty(label))
+                {
+                    label = slider.gameObject.name
+                        .Replace("Slider", "")
+                        .Replace("UI/", "")
+                        .Trim();
+                }
+                
+                // Calculate percentage
+                float percentage = max != min ? ((value - min) / (max - min)) * 100f : 0f;
+                
+                // Try harder to find the actual label from parent STEInputSlider
+                if (string.IsNullOrEmpty(label) || label.Contains("#") || label.Contains("Safehouse"))
+                {
+                    var parentTransform = slider.transform;
+                    for (int i = 0; i < 5 && parentTransform != null; i++)
+                    {
+                        var components = parentTransform.GetComponents<MonoBehaviour>();
+                        foreach (var comp in components)
+                        {
+                            if (comp != null && comp.GetType().Name == "STEInputSlider")
+                            {
+                                // Try to get the name text block
+                                var nameField = comp.GetType().GetField("nameTextBlock", BindingFlags.NonPublic | BindingFlags.Instance);
+                                if (nameField != null)
+                                {
+                                    var textBlock = nameField.GetValue(comp);
+                                    if (textBlock != null)
+                                    {
+                                        var textProp = textBlock.GetType().GetProperty("text");
+                                        if (textProp != null)
+                                        {
+                                            var labelText = textProp.GetValue(textBlock)?.ToString();
+                                            if (!string.IsNullOrWhiteSpace(labelText))
+                                            {
+                                                label = labelText;
+                                                goto foundLabel;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        parentTransform = parentTransform.parent;
+                    }
+                    foundLabel:;
+                }
+                
+                // Clean up label - remove GameObject prefixes if still needed
+                if (!string.IsNullOrEmpty(label))
+                {
+                    label = label.Replace(" - #", "")
+                                 .Replace("#", "")
+                                 .Replace("Safehouse2/", "")
+                                 .Replace("/Input", "")
+                                 .Replace("Slider", "")
+                                 .Trim();
+                    
+                    // Remove trailing numbers from GameObject names
+                    label = System.Text.RegularExpressions.Regex.Replace(label, @"\s+\d+$", "").Trim();
+                }
+                
+                // Debug: Show slider hierarchy for troubleshooting
+                MelonLoader.MelonLogger.Msg($"[Accessibility] Slider debug - GameObject: \"{slider.gameObject.name}\"");
+                var debugParent = slider.transform.parent;
+                if (debugParent != null)
+                {
+                    MelonLoader.MelonLogger.Msg($"[Accessibility] Slider debug - Parent: \"{debugParent.name}\"");
+                    
+                    // Check for sibling text components (label might be next to slider, not parent)
+                    for (int i = 0; i < debugParent.childCount; i++)
+                    {
+                        var child = debugParent.GetChild(i);
+                        var textBlock = child.GetComponent<MonoBehaviour>();
+                        if (textBlock != null && textBlock.GetType().Name == "STETextBlock")
+                        {
+                            var textProp = textBlock.GetType().GetProperty("text");
+                            if (textProp != null)
+                            {
+                                var textValue = textProp.GetValue(textBlock)?.ToString();
+                                if (!string.IsNullOrWhiteSpace(textValue))
+                                {
+                                    MelonLoader.MelonLogger.Msg($"[Accessibility] Slider debug - Found sibling STETextBlock on '{child.name}': \"{textValue}\"");
+                                    if (string.IsNullOrEmpty(label) || label.Contains("#") || label.Contains("Input"))
+                                    {
+                                        label = textValue;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                string announcement = string.IsNullOrEmpty(label)
+                    ? $"Slider, {percentage:F0} percent"
+                    : $"{label}, {percentage:F0} percent";
+                
+                MelonLoader.MelonLogger.Msg($"[Accessibility] Slider final - Label: \"{label}\", Announcement: \"{announcement}\"");
+                SRALHelper.Speak(announcement, true);
+            }
+            catch (Exception ex)
+            {
+                MelonLoader.MelonLogger.Error($"Error in STEDefaultSliderWrapper_OnSelect: {ex.Message}");
+            }
+        }
+
+        public static void STETabMenu_SelectTab_Postfix(object __instance, int tabIndex)
+        {
+            try
+            {
+                if (!CKAccessibilityMod.AnnounceMenuItems) return;
+
+                // Get the tab list
+                var tabListField = __instance.GetType().GetField("tabList", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (tabListField != null)
+                {
+                    var tabList = tabListField.GetValue(__instance);
+                    if (tabList != null)
+                    {
+                        // Access the tab button at the index
+                        var listType = tabList.GetType();
+                        var itemProp = listType.GetProperty("Item");
+                        if (itemProp != null && tabIndex >= 0)
+                        {
+                            try
+                            {
+                                var tabButton = itemProp.GetValue(tabList, new object[] { tabIndex });
+                                if (tabButton != null)
+                                {
+                                    string tabText = GetButtonText(tabButton);
+                                    if (!string.IsNullOrEmpty(tabText))
+                                    {
+                                        MelonLoader.MelonLogger.Msg($"[Accessibility] Tab changed to: \"{tabText}\" (index {tabIndex})");
+                                        SRALHelper.Speak($"{tabText} tab", true);
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                MelonLoader.MelonLogger.Warning($"[Accessibility] Could not get tab at index {tabIndex}: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MelonLoader.MelonLogger.Error($"Error in STETabMenu_SelectTab: {ex.Message}");
             }
         }
 
@@ -825,6 +1300,148 @@ namespace CKFlashpointAccessibility.Patches
                 MelonLoader.MelonLogger.Error($"[GetWidgetText] Exception: {ex.Message}");
                 return widget.GetType().Name;
             }
+        }
+
+        // Catch-all Unity Selectable patch - handles generic Selectable objects that aren't STEButton
+        public static void Unity_Selectable_OnSelect_Postfix(Selectable __instance, BaseEventData eventData)
+        {
+            try
+            {
+                if (!CKAccessibilityMod.AnnounceButtons) return;
+                
+                var type = __instance.GetType();
+                var name = __instance.gameObject.name;
+                
+                // Skip if this is an STEButton or STEDefaultSliderWrapper (they have their own patches)
+                if (type.Name == "STEButton" || type.Name == "STEDefaultSliderWrapper" || 
+                    type.Name == "STEDialogAnswerButton" || type.Name == "STESelectInput")
+                {
+                    return;
+                }
+                
+                MelonLoader.MelonLogger.Msg($"[DEBUG] Generic Selectable - Type: {type.Name}, GameObject: \"{name}\"");
+                
+                // Try to extract and announce text
+                string text = "";
+                
+                // Special handling for attribute adjustment buttons
+                if (name.Contains("Add Button") || name.Contains("Subtract Button"))
+                {
+                    // Find the attribute label by looking at parent/siblings
+                    var parent = __instance.transform.parent;
+                    if (parent != null)
+                    {
+                        // Look for text components in siblings
+                        foreach (Transform sibling in parent)
+                        {
+                            var textComps = sibling.GetComponentsInChildren<UnityEngine.UI.Text>();
+                            foreach (var tc in textComps)
+                            {
+                                if (!string.IsNullOrWhiteSpace(tc.text))
+                                {
+                                    var labelText = tc.text.Trim();
+                                    // Check if it's an attribute name
+                                    if (labelText == "Reaction" || labelText == "Strength" || labelText == "Will" || labelText == "Tech")
+                                    {
+                                        text = name.Contains("Add") ? $"Increase {labelText}" : $"Decrease {labelText}";
+                                        goto foundLabel;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    foundLabel:;
+                }
+                
+                // Try child text components if not a special button
+                if (string.IsNullOrEmpty(text))
+                {
+                    // Try Unity UI Text first
+                    var textComponents = __instance.GetComponentsInChildren<UnityEngine.UI.Text>();
+                    if (textComponents != null && textComponents.Length > 0)
+                    {
+                        foreach (var tc in textComponents)
+                        {
+                            if (!string.IsNullOrWhiteSpace(tc.text))
+                            {
+                                text = tc.text;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Try STETextBlock if Unity Text didn't work
+                    if (string.IsNullOrEmpty(text))
+                    {
+                        text = GetWidgetText(__instance.gameObject);
+                    }
+                    
+                    // Try cleaning up the game object name as last resort for tabs
+                    if (string.IsNullOrEmpty(text) && name.Contains("Tab View"))
+                    {
+                        // Extract tab name from patterns like:
+                        // "Weapons New Knight Tab View" -> "Weapons"
+                        // "UI/Safehouse2/New Knight BackStory Tab View - #1" -> "BackStory"
+                        text = name;
+                        
+                        // Remove path prefix if present
+                        if (text.Contains("/"))
+                        {
+                            text = text.Substring(text.LastIndexOf("/") + 1);
+                        }
+                        
+                        // Remove "New Knight" and "Tab View" parts
+                        text = text.Replace("New Knight", "")
+                                   .Replace("Tab View", "")
+                                   .Trim();
+                        
+                        // Remove trailing pattern like " - #1"
+                        if (text.Contains(" - #"))
+                        {
+                            text = text.Substring(0, text.IndexOf(" - #")).Trim();
+                        }
+                    }
+                }
+                
+                // Clean up the text
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    text = System.Text.RegularExpressions.Regex.Replace(text, @"\s*\(Corp Knowledge\)\s*", "").Trim();
+                    text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+\d+$", "").Trim(); // Remove trailing numbers
+                    
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        MelonLoader.MelonLogger.Msg($"[Accessibility] Generic selectable focused: \"{text}\"");
+                        SRALHelper.Speak(text, true);
+                    }
+                    else
+                    {
+                        MelonLoader.MelonLogger.Msg($"[DEBUG] Text was empty after cleanup: \"{name}\"");
+                    }
+                }
+                else
+                {
+                    MelonLoader.MelonLogger.Msg($"[DEBUG] No text found for generic selectable: \"{name}\"");
+                }
+            }
+            catch (Exception ex)
+            {
+                MelonLoader.MelonLogger.Error($"Error in Unity_Selectable_OnSelect_Postfix: {ex.Message}");
+            }
+        }
+
+        // Coroutine to delay text announcement until typing animation completes
+        private static System.Collections.IEnumerator DelayedAnnounce(string text, int delayMs)
+        {
+            yield return new UnityEngine.WaitForSeconds(delayMs / 1000f);
+            SRALHelper.Speak(text, false);
+        }
+
+        // Coroutine to enter attribute screen after a delay to allow UI to settle
+        private static System.Collections.IEnumerator EnterAttributeScreenDelayed()
+        {
+            yield return new UnityEngine.WaitForSeconds(0.5f);
+            CharacterCreationNavigation.EnterAttributeScreen();
         }
     }
 }
