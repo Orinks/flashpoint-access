@@ -12,7 +12,8 @@ obj/
 *.sln.docstates
 
 # Tools and temp files
-tools/SRAL/build/
+tools/SRAL/
+tools/dnSpy/
 tools/tolk-temp/
 tools/*.zip
 dumped/
