@@ -124,17 +124,32 @@ namespace CKFlashpointAccessibility
             _logger = logger;
 
             // Try NVDA first if available
+            _logger?.Msg("Attempting SRAL initialization with ENGINE_NVDA...");
             if (!SRAL.SRAL_Initialize(SRAL.Engine.ENGINE_NVDA))
             {
+                _logger?.Warning("ENGINE_NVDA initialization failed, trying ENGINE_SAPI...");
+                
                 // Fallback to SAPI
                 if (!SRAL.SRAL_Initialize(SRAL.Engine.ENGINE_SAPI))
                 {
+                    _logger?.Warning("ENGINE_SAPI initialization failed, trying ENGINE_UIA...");
+                    
                     // Last resort: UIA
                     if (!SRAL.SRAL_Initialize(SRAL.Engine.ENGINE_UIA))
                     {
+                        _logger?.Error("ENGINE_UIA initialization failed - no screen reader engines available!");
                         throw new Exception("Failed to initialize any SRAL engine");
                     }
+                    _logger?.Warning("Fell back to ENGINE_UIA (may have character-by-character reading issues)");
                 }
+                else
+                {
+                    _logger?.Msg("Successfully initialized with ENGINE_SAPI");
+                }
+            }
+            else
+            {
+                _logger?.Msg("Successfully initialized with ENGINE_NVDA");
             }
 
             var engine = SRAL.SRAL_GetCurrentEngine();
@@ -160,8 +175,23 @@ namespace CKFlashpointAccessibility
             try
             {
                 _logger?.Msg($"[SRAL] Speaking: \"{text}\" (interrupt={interrupt}, length={text.Length})");
-                // Use Output which handles both speech and braille
-                SRAL.SRAL_Output(text, interrupt);
+                
+                // Try NVDA controller client directly first (bypasses SRAL)
+                if (interrupt)
+                {
+                    NVDAController.StopSpeech();
+                }
+                
+                bool success = NVDAController.Speak(text);
+                _logger?.Msg($"[NVDA Direct] Speak result: {success}");
+                
+                // Fallback to SRAL if NVDA direct fails
+                if (!success)
+                {
+                    _logger?.Msg("[NVDA Direct] Failed, trying SRAL...");
+                    SRAL.SRAL_Speak(text, interrupt);
+                }
+                
                 _lastSpeechTime = now;
             }
             catch (Exception ex)

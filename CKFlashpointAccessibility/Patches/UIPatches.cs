@@ -200,15 +200,15 @@ namespace CKFlashpointAccessibility.Patches
             }
         }
 
-        public static void STETextBlock_SetText_Postfix(object __instance, string text)
+        public static void STETextBlock_SetText_Postfix(object __instance, string t)
         {
             try
             {
                 if (!CKAccessibilityMod.AnnounceMenuItems) return;
 
-                if (!string.IsNullOrEmpty(text))
+                if (!string.IsNullOrEmpty(t))
                 {
-                    SRALHelper.Speak(text, false);
+                    SRALHelper.Speak(t, false);
                 }
             }
             catch (Exception ex)
@@ -308,7 +308,7 @@ namespace CKFlashpointAccessibility.Patches
             {
                 if (!CKAccessibilityMod.AnnounceButtons) return;
 
-                string text = GetWidgetText(__instance);
+                string text = GetButtonText(__instance);
                 if (!string.IsNullOrEmpty(text))
                 {
                     SRALHelper.Speak(text, true);
