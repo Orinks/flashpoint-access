@@ -1,0 +1,56 @@
+
+[01:42:17.299] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Cyber Knights Flashpoint accessibility mod loaded successfully!" (interrupt=True, length=63)
+[01:42:22.653] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:42:22.655] [CK Flashpoint Accessibility] [GetButtonText] Found 12 child components
+[01:42:22.656] [CK Flashpoint Accessibility] [GetButtonText] Falling back to GameObject name: "UI/Button MainMenu - #2"
+[01:42:22.657] [Accessibility] Button selected, extracted text: "UI/Button MainMenu - #2" (Length: 23)
+[01:42:22.658] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #2" (interrupt=True, length=23)
+[01:42:22.679] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #2" (interrupt=True, length=23)
+[01:42:22.701] [Accessibility] Widget selected: UI/Button MainMenu - #2
+[01:42:22.701] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #2" (interrupt=True, length=23)
+[01:42:24.999] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:42:25.000] [CK Flashpoint Accessibility] [GetButtonText] Found 12 child components
+[01:42:25.001] [CK Flashpoint Accessibility] [GetButtonText] Falling back to GameObject name: "UI/Button MainMenu - #3"
+[01:42:25.002] [Accessibility] Button selected, extracted text: "UI/Button MainMenu - #3" (Length: 23)
+[01:42:25.002] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #3" (interrupt=True, length=23)
+[01:42:25.023] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #3" (interrupt=True, length=23)
+[01:42:25.579] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:42:25.580] [CK Flashpoint Accessibility] [GetButtonText] Found 12 child components
+[01:42:25.582] [CK Flashpoint Accessibility] [GetButtonText] Falling back to GameObject name: "UI/Button MainMenu - #2"
+[01:42:25.582] [Accessibility] Button selected, extracted text: "UI/Button MainMenu - #2" (Length: 23)
+[01:42:25.583] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #2" (interrupt=True, length=23)
+[01:42:25.603] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #2" (interrupt=True, length=23)
+[01:42:26.227] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:42:26.230] [CK Flashpoint Accessibility] [GetButtonText] Found 12 child components
+[01:42:26.232] [CK Flashpoint Accessibility] [GetButtonText] Falling back to GameObject name: "Wiki Button MainMenu"
+[01:42:26.233] [Accessibility] Button selected, extracted text: "Wiki Button MainMenu" (Length: 20)
+[01:42:26.234] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Wiki Button MainMenu" (interrupt=True, length=20)
+[01:42:26.256] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Wiki Button MainMenu" (interrupt=True, length=20)
+[01:42:26.613] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:42:26.614] [CK Flashpoint Accessibility] [GetButtonText] Found 12 child components
+[01:42:26.615] [CK Flashpoint Accessibility] [GetButtonText] Falling back to GameObject name: "UI/Button MainMenu - #5"
+[01:42:26.616] [Accessibility] Button selected, extracted text: "UI/Button MainMenu - #5" (Length: 23)
+[01:42:26.617] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #5" (interrupt=True, length=23)
+[01:42:26.636] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #5" (interrupt=True, length=23)
+[01:42:26.958] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:42:26.960] [CK Flashpoint Accessibility] [GetButtonText] Found 12 child components
+[01:42:26.962] [CK Flashpoint Accessibility] [GetButtonText] Falling back to GameObject name: "Wiki Button MainMenu"
+[01:42:26.963] [Accessibility] Button selected, extracted text: "Wiki Button MainMenu" (Length: 20)
+[01:42:26.964] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Wiki Button MainMenu" (interrupt=True, length=20)
+[01:42:26.984] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Wiki Button MainMenu" (interrupt=True, length=20)
+[01:42:27.207] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Twiter Button Image" (interrupt=True, length=19)
+[01:42:27.432] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Reddit Button Image" (interrupt=True, length=19)
+[01:42:27.638] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Facebook Button Image" (interrupt=True, length=21)
+[01:42:29.194] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:42:29.195] [CK Flashpoint Accessibility] [GetButtonText] Found 9 child components
+[01:42:29.196] [CK Flashpoint Accessibility] [GetButtonText] Falling back to GameObject name: "Button Discord"
+[01:42:29.197] [Accessibility] Button selected, extracted text: "Button Discord" (Length: 14)
+[01:42:29.197] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Button Discord" (interrupt=True, length=14)
+[01:42:29.217] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Button Discord" (interrupt=True, length=14)
+[01:42:29.740] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:42:29.741] [CK Flashpoint Accessibility] [GetButtonText] Found 12 child components
+[01:42:29.744] [CK Flashpoint Accessibility] [GetButtonText] Falling back to GameObject name: "UI/Button MainMenu - #2"
+[01:42:29.745] [Accessibility] Button selected, extracted text: "UI/Button MainMenu - #2" (Length: 23)
+[01:42:29.746] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #2" (interrupt=True, length=23)
+[01:42:29.766] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #2" (interrupt=True, length=23)
+

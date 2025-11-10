@@ -1,0 +1,153 @@
+
+[01:44:17.284] ------------------------------
+[01:44:17.287] MelonLoader v0.7.1 Open-Beta
+[01:44:17.288] OS: Windows 11
+[01:44:17.289] Hash Code: E02D6B4281E511A9F1EA88CD1737B993A6B9C7C5566EFBE68300B1FCF1479C14
+[01:44:17.290] ------------------------------
+[01:44:17.291] Game Type: Il2cpp
+[01:44:17.291] Game Arch: x64
+[01:44:17.292] ------------------------------
+[01:44:17.293] Command-Line: 
+[01:44:17.293] ------------------------------
+[01:44:17.294] Core::BasePath = C:\Program Files (x86)\Steam\steamapps\common\Cyber Knights Flashpoint
+[01:44:17.296] Game::BasePath = C:\Program Files (x86)\Steam\steamapps\common\Cyber Knights Flashpoint
+[01:44:17.297] Game::DataPath = C:\Program Files (x86)\Steam\steamapps\common\Cyber Knights Flashpoint\CyberKnights_Data
+[01:44:17.297] Game::ApplicationPath = C:\Program Files (x86)\Steam\steamapps\common\Cyber Knights Flashpoint\CyberKnights.exe
+[01:44:17.298] Runtime Type: net6
+[01:44:17.350] ------------------------------
+[01:44:17.351] Game Name: CyberKnights
+[01:44:17.352] Game Developer: TreseBrothersGames
+[01:44:17.354] Unity Version: 2021.3.45f2
+[01:44:17.355] Game Version: 2.2.69
+[01:44:17.355] ------------------------------
+
+[01:44:17.760] Preferences Loaded!
+
+[01:44:17.770] Loading UserLibs...
+[01:44:17.773] 0 UserLibs loaded.
+
+[01:44:17.774] Loading Plugins...
+[01:44:17.777] 0 Plugins loaded.
+
+[01:44:18.231] Loading Il2CppAssemblyGenerator...
+[01:44:18.254] [Il2CppAssemblyGenerator] Contacting RemoteAPI...
+[01:44:18.409] [Il2CppAssemblyGenerator] Game Not Found on RemoteAPI Host (https://api.melonloader.com/api/v1/game/cyberknights)
+[01:44:18.410] [Il2CppAssemblyGenerator] RemoteAPI.DumperVersion = null
+[01:44:18.412] [Il2CppAssemblyGenerator] RemoteAPI.ObfuscationRegex = null
+[01:44:18.414] [Il2CppAssemblyGenerator] RemoteAPI.MappingURL = null
+[01:44:18.415] [Il2CppAssemblyGenerator] RemoteAPI.MappingFileSHA512 = null
+[01:44:18.423] [Il2CppAssemblyGenerator] Using Cpp2IL Version: 2022.1.0-pre-release.19
+[01:44:18.424] [Il2CppAssemblyGenerator] Using Il2CppInterop Version = 1.5.0-ci.625+51abbdd5e95447d4450eb82bde1b77ecff3cea74
+[01:44:18.426] [Il2CppAssemblyGenerator] Using Unity Dependencies Version = 2021.3.45
+[01:44:18.426] [Il2CppAssemblyGenerator] Using Deobfuscation Regex = null
+[01:44:18.428] [Il2CppAssemblyGenerator] Cpp2IL is up to date.
+[01:44:18.428] [Il2CppAssemblyGenerator] Cpp2IL.Plugin.StrippedCodeRegSupport is up to date.
+[01:44:18.429] [Il2CppAssemblyGenerator] UnityDependencies is up to date.
+[01:44:18.431] [Il2CppAssemblyGenerator] Checking GameAssembly...
+[01:44:18.540] [Il2CppAssemblyGenerator] Assembly is up to date. No Generation Needed.
+
+[01:44:18.543] Loading Mods...
+[01:44:18.563] ------------------------------
+[01:44:18.566] Melon Assembly loaded: '.\Mods\CKFlashpointAccessibility.dll'
+[01:44:18.567] SHA256 Hash: 'E63722B3BB9A23A758A34A4B1C7E7D9DADF3F154DF864E7B18D10EDBA172BC15'
+
+[01:44:18.636] ------------------------------
+[01:44:18.637] CK Flashpoint Accessibility v1.0.0
+[01:44:18.638] by Joshua
+[01:44:18.638] Assembly: CKFlashpointAccessibility.dll
+[01:44:18.639] ------------------------------
+[01:44:18.640] ------------------------------
+[01:44:18.640] 1 Mod loaded.
+
+[01:44:19.572] [Il2CppInterop] Class::Init signatures have been exhausted, using a substitute!
+[01:44:19.691] [Il2CppInterop] Registered mono type Il2CppInterop.Runtime.DelegateSupport+Il2CppToMonoDelegateReference in il2cpp domain
+[01:44:19.712] [Il2CppInterop] Registered mono type MelonLoader.Support.MonoEnumeratorWrapper in il2cpp domain
+[01:44:19.715] [Il2CppInterop] Registered mono type MelonLoader.Support.SM_Component in il2cpp domain
+[01:44:19.720] Support Module Loaded: C:\Program Files (x86)\Steam\steamapps\common\Cyber Knights Flashpoint\MelonLoader\Dependencies\SupportModules\Il2Cpp.dll
+[01:44:19.828] [CK_Flashpoint_Accessibility] SRAL initialized with engine: 64
+[01:44:19.830] [CK_Flashpoint_Accessibility] Engine features: 378
+[01:44:19.830] [CK_Flashpoint_Accessibility] SRAL screen reader library initialized successfully.
+[01:44:19.831] [CK_Flashpoint_Accessibility] CK Flashpoint Accessibility v1.0.0 loaded!
+[01:44:19.832] [CK_Flashpoint_Accessibility] Waiting for game assemblies to load...
+[01:44:19.833] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Cyber Knights Flashpoint accessibility mod loaded successfully!" (interrupt=True, length=63)
+[01:44:22.102] [CK_Flashpoint_Accessibility] Game assemblies loaded, applying patches...
+[01:44:22.134] [CK Flashpoint Accessibility] Found game assembly with 3143 types
+[01:44:22.136] AccessTools.Method: Could not find method for type Il2CppRPG.UI.Widgets.Buttons.STEButton and name OnPointerClick and parameters 
+[01:44:22.137] [CK Flashpoint Accessibility] Method not found: Il2CppRPG.UI.Widgets.Buttons.STEButton.OnPointerClick
+[01:44:22.189] [CK Flashpoint Accessibility] Patched: Il2CppRPG.UI.Widgets.Buttons.STEButton.OnSelect
+[01:44:22.205] [CK Flashpoint Accessibility] Patched: Il2CppRPG.UI.Widgets.Buttons.STEButton.OnDeselect
+[01:44:22.209] Failed to patch void Il2CppRPG.UI.Widgets.Text.STETextBlock::SetText(string t): System.Exception: Parameter "text" not found in method void Il2CppRPG.UI.Widgets.Text.STETextBlock::SetText(string t)
+   at HarmonyLib.Public.Patching.HarmonyManipulator.EmitCallParameter(MethodInfo patch, Boolean allowFirsParamPassthrough, VariableDefinition& tmpObjectVar, List`1& tmpBoxVars)
+   at HarmonyLib.Public.Patching.HarmonyManipulator.WritePostfixes(Label returnLabel, Boolean emitResultStore)
+   at HarmonyLib.Public.Patching.HarmonyManipulator.WriteImpl()
+[01:44:22.212] [CK Flashpoint Accessibility] Failed to patch Il2CppRPG.UI.Widgets.Text.STETextBlock.SetText: IL Compile Error (unknown location)
+[01:44:22.213] AccessTools.Method: Could not find method for type Il2CppRPG.UI.UIScreenBase and name Show and parameters 
+[01:44:22.215] [CK Flashpoint Accessibility] Method not found: Il2CppRPG.UI.UIScreenBase.Show
+[01:44:22.216] com.joshua.ckflashpoint.accessibility: You should only patch implemented methods/constructors to avoid issues. Patch the declared method virtual void UnityEngine.UI.Selectable::Select() instead of virtual void UnityEngine.UI.Selectable::Select().
+[01:44:22.247] [CK Flashpoint Accessibility] Patched: Il2CppRPG.UI.Widgets.STESelectableWidgetBase.Select
+[01:44:22.249] com.joshua.ckflashpoint.accessibility: You should only patch implemented methods/constructors to avoid issues. Patch the declared method virtual void UnityEngine.UI.Selectable::OnSelect(UnityEngine.EventSystems.BaseEventData eventData) instead of virtual void UnityEngine.UI.Selectable::OnSelect(UnityEngine.EventSystems.BaseEventData eventData).
+[01:44:22.266] [CK Flashpoint Accessibility] Patched: Il2CppRPG.UI.Widgets.STESelectableWidgetBase.OnSelect
+[01:44:22.267] AccessTools.Method: Could not find method for type Il2CppRPG.UI.Widgets.STESelectableWidgetBase and name Deselect and parameters 
+[01:44:22.268] [CK Flashpoint Accessibility] Method not found: Il2CppRPG.UI.Widgets.STESelectableWidgetBase.Deselect
+[01:44:22.284] [CK Flashpoint Accessibility] Patched: Il2CppRPG.UI.Widgets.DialogBlocks.STEDialogAnswerButton.OnSelect
+[01:44:22.285] [CK Flashpoint Accessibility] Type not found: Il2CppSTETextInput
+[01:44:22.286] [CK Flashpoint Accessibility] Type not found: Il2CppSTETextInput
+[01:44:22.287] AccessTools.Method: Could not find method for type Il2CppRPG.UI.Widgets.ContentBlocks.STETextItem and name OnSelect and parameters 
+[01:44:22.288] [CK Flashpoint Accessibility] Method not found: Il2CppRPG.UI.Widgets.ContentBlocks.STETextItem.OnSelect
+[01:44:22.289] AccessTools.Method: Could not find method for type Il2CppRPG.UI.Widgets.ContentBlocks.STETextItem and name Select and parameters 
+[01:44:22.289] [CK Flashpoint Accessibility] Method not found: Il2CppRPG.UI.Widgets.ContentBlocks.STETextItem.Select
+[01:44:22.290] [CK Flashpoint Accessibility] Type not found: Il2CppScreen_MissionPlanning
+[01:44:22.291] [CK Flashpoint Accessibility] Type not found: Il2CppScreen_Roster
+[01:44:22.292] [CK Flashpoint Accessibility] Type not found: Il2CppScreen_Loadout
+[01:44:22.293] [CK Flashpoint Accessibility] Type not found: Il2CppScreen_Training
+[01:44:22.294] [CK Flashpoint Accessibility] Type not found: Il2CppScreen_Cyberdeck
+[01:44:22.295] [CK Flashpoint Accessibility] All UI patches applied successfully
+[01:44:22.296] [CK_Flashpoint_Accessibility] All Harmony patches applied successfully.
+[01:44:25.008] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:44:25.009] [CK Flashpoint Accessibility] [GetButtonText] Using cleaned GameObject name: "Main Menu 2"
+[01:44:25.010] [Accessibility] Button selected, extracted text: "Main Menu 2" (Length: 11)
+[01:44:25.011] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Main Menu 2" (interrupt=True, length=11)
+[01:44:25.038] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #2" (interrupt=True, length=23)
+[01:44:25.059] [Accessibility] Widget selected: UI/Button MainMenu - #2
+[01:44:25.060] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #2" (interrupt=True, length=23)
+[01:44:25.956] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:44:25.957] [CK Flashpoint Accessibility] [GetButtonText] Using cleaned GameObject name: "Wiki  Main Menu"
+[01:44:25.958] [Accessibility] Button selected, extracted text: "Wiki  Main Menu" (Length: 15)
+[01:44:25.959] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Wiki  Main Menu" (interrupt=True, length=15)
+[01:44:25.980] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Wiki Button MainMenu" (interrupt=True, length=20)
+[01:44:26.187] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Twiter Button Image" (interrupt=True, length=19)
+[01:44:26.394] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Reddit Button Image" (interrupt=True, length=19)
+[01:44:26.601] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Facebook Button Image" (interrupt=True, length=21)
+[01:44:27.775] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:44:27.777] [CK Flashpoint Accessibility] [GetButtonText] Using cleaned GameObject name: "Discord"
+[01:44:27.778] [Accessibility] Button selected, extracted text: "Discord" (Length: 7)
+[01:44:27.779] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Discord" (interrupt=True, length=7)
+[01:44:27.802] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Button Discord" (interrupt=True, length=14)
+[01:44:27.975] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:44:27.976] [CK Flashpoint Accessibility] [GetButtonText] Using cleaned GameObject name: "Main Menu 2"
+[01:44:27.977] [Accessibility] Button selected, extracted text: "Main Menu 2" (Length: 11)
+[01:44:27.978] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Main Menu 2" (interrupt=True, length=11)
+[01:44:27.998] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #2" (interrupt=True, length=23)
+[01:44:29.638] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:44:29.640] [CK Flashpoint Accessibility] [GetButtonText] Using cleaned GameObject name: "Main Menu 3"
+[01:44:29.641] [Accessibility] Button selected, extracted text: "Main Menu 3" (Length: 11)
+[01:44:29.642] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Main Menu 3" (interrupt=True, length=11)
+[01:44:29.663] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #3" (interrupt=True, length=23)
+[01:44:29.820] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:44:29.821] [CK Flashpoint Accessibility] [GetButtonText] Using cleaned GameObject name: "Main Menu 4"
+[01:44:29.823] [Accessibility] Button selected, extracted text: "Main Menu 4" (Length: 11)
+[01:44:29.824] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Main Menu 4" (interrupt=True, length=11)
+[01:44:29.845] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #4" (interrupt=True, length=23)
+[01:44:30.002] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:44:30.004] [CK Flashpoint Accessibility] [GetButtonText] Using cleaned GameObject name: "Main Menu 5"
+[01:44:30.005] [Accessibility] Button selected, extracted text: "Main Menu 5" (Length: 11)
+[01:44:30.006] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Main Menu 5" (interrupt=True, length=11)
+[01:44:30.027] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #5" (interrupt=True, length=23)
+[01:44:41.518] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+[01:44:41.519] [CK Flashpoint Accessibility] [GetButtonText] Using cleaned GameObject name: "Main Menu 4"
+[01:44:41.522] [Accessibility] Button selected, extracted text: "Main Menu 4" (Length: 11)
+[01:44:41.522] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Main Menu 4" (interrupt=True, length=11)
+[01:44:41.547] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #4" (interrupt=True, length=23)
+[01:44:42.998] [CK_Flashpoint_Accessibility] SRAL shut down.
+[01:44:42.999] [CK_Flashpoint_Accessibility] Accessibility mod unloaded.
+[01:44:43.010] Preferences Saved!

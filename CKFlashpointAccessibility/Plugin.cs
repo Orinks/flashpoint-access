@@ -51,23 +51,45 @@ namespace CKFlashpointAccessibility
                 return;
             }
 
-            // Apply Harmony patches
+            LoggerInstance.Msg("CK Flashpoint Accessibility v1.0.0 loaded!");
+            LoggerInstance.Msg("Waiting for game assemblies to load...");
+            
+            // Test announcement
+            SRALHelper.Speak("Mod ready", true);
+        }
+
+        public override void OnSceneWasLoaded(int buildIndex, string sceneName)
+        {
+            // Apply patches when first scene loads (assemblies are ready)
+            if (buildIndex == 0 || buildIndex == 1)
+            {
+                ApplyPatches();
+            }
+        }
+
+        private static bool _patchesApplied = false;
+
+        private void ApplyPatches()
+        {
+            if (_patchesApplied) return;
+
             try
             {
-                // Uncomment after game installation to enable actual patches
-                // HarmonyInstance.PatchAll(typeof(UIPatches));
+                LoggerInstance.Msg("Game assemblies loaded, applying patches...");
                 
-                LoggerInstance.Msg("Harmony patches applied successfully.");
+                var harmony = new HarmonyLib.Harmony("com.joshua.ckflashpoint.accessibility");
+                
+                // Apply UI patches using runtime type resolution
+                Patches.UIPatches.ApplyPatches(harmony);
+                
+                _patchesApplied = true;
+                LoggerInstance.Msg("All Harmony patches applied successfully.");
             }
             catch (Exception ex)
             {
                 LoggerInstance.Error($"Failed to apply Harmony patches: {ex.Message}");
+                LoggerInstance.Error($"Stack trace: {ex.StackTrace}");
             }
-
-            LoggerInstance.Msg("CK Flashpoint Accessibility v1.0.0 loaded!");
-            
-            // Test announcement
-            SRALHelper.Speak("Cyber Knights Flashpoint accessibility mod loaded successfully!", true);
         }
 
         public override void OnDeinitializeMelon()
@@ -92,20 +114,16 @@ namespace CKFlashpointAccessibility
 
             _logger = logger;
 
-            // Try to initialize with UIA (best for Windows desktop apps)
-            if (!SRAL.SRAL_Initialize(SRAL.Engine.ENGINE_UIA))
+            // Try NVDA first if available
+            if (!SRAL.SRAL_Initialize(SRAL.Engine.ENGINE_NVDA))
             {
-                // Fallback to SAPI if UIA fails
+                // Fallback to SAPI
                 if (!SRAL.SRAL_Initialize(SRAL.Engine.ENGINE_SAPI))
                 {
-                    // Try NVDA directly
-                    if (!SRAL.SRAL_Initialize(SRAL.Engine.ENGINE_NVDA))
+                    // Last resort: UIA
+                    if (!SRAL.SRAL_Initialize(SRAL.Engine.ENGINE_UIA))
                     {
-                        // Last resort: JAWS
-                        if (!SRAL.SRAL_Initialize(SRAL.Engine.ENGINE_JAWS))
-                        {
-                            throw new Exception("Failed to initialize any screen reader engine");
-                        }
+                        throw new Exception("Failed to initialize any SRAL engine");
                     }
                 }
             }
@@ -132,7 +150,9 @@ namespace CKFlashpointAccessibility
 
             try
             {
-                SRAL.SRAL_Speak(text, interrupt);
+                _logger?.Msg($"[SRAL] Speaking: \"{text}\" (interrupt={interrupt}, length={text.Length})");
+                // Use Output which handles both speech and braille
+                SRAL.SRAL_Output(text, interrupt);
                 _lastSpeechTime = now;
             }
             catch (Exception ex)

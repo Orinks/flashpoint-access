@@ -1,0 +1,41 @@
+
+> [01:44:19.833] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Cyber Knights Flashpoint accessibility mod loaded successfully!" (interrupt=True, length=63)
+  [01:44:22.102] [CK_Flashpoint_Accessibility] Game assemblies loaded, applying patches...
+> [01:44:25.010] [Accessibility] Button selected, extracted text: "Main Menu 2" (Length: 11)
+> [01:44:25.011] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Main Menu 2" (interrupt=True, length=11)
+> [01:44:25.038] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #2" (interrupt=True, length=23)
+  [01:44:25.059] [Accessibility] Widget selected: UI/Button MainMenu - #2
+> [01:44:25.060] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #2" (interrupt=True, length=23)
+  [01:44:25.956] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+> [01:44:25.958] [Accessibility] Button selected, extracted text: "Wiki  Main Menu" (Length: 15)
+> [01:44:25.959] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Wiki  Main Menu" (interrupt=True, length=15)
+> [01:44:25.980] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Wiki Button MainMenu" (interrupt=True, length=20)
+> [01:44:26.187] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Twiter Button Image" (interrupt=True, length=19)
+> [01:44:26.394] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Reddit Button Image" (interrupt=True, length=19)
+> [01:44:26.601] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Facebook Button Image" (interrupt=True, length=21)
+  [01:44:27.775] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+> [01:44:27.778] [Accessibility] Button selected, extracted text: "Discord" (Length: 7)
+> [01:44:27.779] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Discord" (interrupt=True, length=7)
+> [01:44:27.802] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Button Discord" (interrupt=True, length=14)
+  [01:44:27.975] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+> [01:44:27.977] [Accessibility] Button selected, extracted text: "Main Menu 2" (Length: 11)
+> [01:44:27.978] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Main Menu 2" (interrupt=True, length=11)
+> [01:44:27.998] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #2" (interrupt=True, length=23)
+  [01:44:29.638] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+> [01:44:29.641] [Accessibility] Button selected, extracted text: "Main Menu 3" (Length: 11)
+> [01:44:29.642] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Main Menu 3" (interrupt=True, length=11)
+> [01:44:29.663] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #3" (interrupt=True, length=23)
+  [01:44:29.820] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+> [01:44:29.823] [Accessibility] Button selected, extracted text: "Main Menu 4" (Length: 11)
+> [01:44:29.824] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Main Menu 4" (interrupt=True, length=11)
+> [01:44:29.845] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #4" (interrupt=True, length=23)
+  [01:44:30.002] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+> [01:44:30.005] [Accessibility] Button selected, extracted text: "Main Menu 5" (Length: 11)
+> [01:44:30.006] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Main Menu 5" (interrupt=True, length=11)
+> [01:44:30.027] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #5" (interrupt=True, length=23)
+  [01:44:41.518] [CK Flashpoint Accessibility] [GetButtonText] Button type: Il2CppRPG.UI.Widgets.Buttons.STEButton
+> [01:44:41.522] [Accessibility] Button selected, extracted text: "Main Menu 4" (Length: 11)
+> [01:44:41.522] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "Main Menu 4" (interrupt=True, length=11)
+> [01:44:41.547] [CK_Flashpoint_Accessibility] [SRAL] Speaking: "UI/Button MainMenu - #4" (interrupt=True, length=23)
+  [01:44:42.998] [CK_Flashpoint_Accessibility] SRAL shut down.
+
