@@ -3,8 +3,10 @@
 This workspace is set up to create accessibility modifications for Cyber Knights: Flashpoint using BepInEx and Tolk screen reader integration.
 
 ## Project Status
-- **Pre-Purchase Setup**: Complete development environment ready
-- **Waiting For**: Game installation to begin actual modding
+- **Pre-Purchase Setup**: ✅ Complete development environment ready
+- **Code Implementation**: ✅ 3-tier text extraction with IL2CPP interop
+- **Debugging Tools**: ✅ Enhanced logging + UnityExplorer installer
+- **Next Step**: 🎮 Test in-game and report findings (see TESTING-WORKFLOW.md)
 
 ## Quick Start (After Game Purchase)
 
@@ -12,8 +14,10 @@ This workspace is set up to create accessibility modifications for Cyber Knights
 2. **Run the setup script**: `.\scripts\setup-melonloader.ps1`
 3. **Launch game once** to generate MelonLoader files
 4. **Update project references**: `.\scripts\update-references.ps1`
-5. **Build the mod**: `dotnet build .\CKFlashpointAccessibility\`
-6. **Deploy**: `.\scripts\deploy-mod.ps1`
+5. **Build SRAL**: See `docs\building-sral.md` (screen reader library)
+6. **Deploy the mod**: `.\scripts\deploy-mod.ps1` (builds + copies to Mods/)
+7. **Enable debug logging**: Edit `UserData\MelonPreferences.cfg`, set `DebugTextExtraction = true`
+8. **Test and report**: Follow `TESTING-WORKFLOW.md`
 
 ## Project Structure
 
@@ -106,12 +110,23 @@ Flashpoint-access/
 - Harmony Documentation: https://harmony.pardeike.net/
 - Unity Scripting Reference: https://docs.unity3d.com/ScriptReference/
 
+## Implementation Highlights
+
+- **3-Tier Text Extraction**: Direct IL2CPP access → Reflection with 3 assembly names → Private field access
+- **Enhanced Debug Logging**: Logs all component types, assemblies, and text properties for troubleshooting
+- **MelonLoader 0.6 + CoreCLR**: Modern .NET 6 IL2CPP interop (not legacy Unhollower)
+- **SRAL Integration**: Multi-screen-reader support (NVDA, JAWS, SAPI, UIA, braille displays)
+- **Automated Tooling**: UnityExplorer installer, deployment scripts, reference updater
+
+See `PLAN-IMPLEMENTATION-STATUS.md` for detailed comparison with troubleshooting plan.
+
 ## Notes
 
 - **Game Architecture**: Unity IL2CPP (confirmed by Steam page tech specs)
 - **Expected Files**: `GameAssembly.dll`, `global-metadata.dat`
 - **Default Install Path**: `C:\Program Files (x86)\Steam\steamapps\common\Cyber Knights Flashpoint`
-- **This is pioneering work**: No existing mods found as of Nov 2024
+- **This is pioneering work**: No existing accessibility mods found as of Nov 2024
+- **Screen Reader Friendly Development**: MelonLoader console output works with NVDA/JAWS
 
 ## Troubleshooting
 

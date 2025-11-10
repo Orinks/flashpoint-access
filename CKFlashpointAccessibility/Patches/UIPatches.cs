@@ -2,9 +2,12 @@ using HarmonyLib;
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.InteropTypes;
 
 namespace CKFlashpointAccessibility.Patches
 {
@@ -334,7 +337,7 @@ namespace CKFlashpointAccessibility.Patches
         {
             try
             {
-                if (!CKAccessibilityMod.AnnounceMenuItems) return;
+                if (!CKAccessibilityMod.AnnounceMenuItems || !CKAccessibilityMod.AnnounceTypedChar) return;
 
                 if (!string.IsNullOrEmpty(value) && value.Length > 0)
                 {
@@ -457,71 +460,264 @@ namespace CKFlashpointAccessibility.Patches
             try
             {
                 var buttonType = button.GetType();
-                MelonLoader.MelonLogger.Msg($"[GetButtonText] Button type: {buttonType.FullName}");
-                
-                // Try accessing _Text field directly via reflection (from IL2CPP dump analysis)
-                var textField = buttonType.GetField("_Text", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                if (textField != null)
-                {
-                    var textComponent = textField.GetValue(button);
-                    MelonLoader.MelonLogger.Msg($"[GetButtonText] _Text field value: {textComponent?.GetType().Name ?? "null"}");
-                    
-                    if (textComponent != null)
-                    {
-                        // Try to get the text property
-                        var textProp = textComponent.GetType().GetProperty("text", BindingFlags.Public | BindingFlags.Instance);
-                        if (textProp != null)
-                        {
-                            var textValue = textProp.GetValue(textComponent);
-                            if (textValue != null)
-                            {
-                                var textStr = textValue.ToString();
-                                MelonLoader.MelonLogger.Msg($"[GetButtonText] Found text via _Text field: \"{textStr}\"");
-                                if (!string.IsNullOrEmpty(textStr))
-                                    return textStr;
-                            }
-                        }
-                    }
-                }
-                
-                // Try _SubText field
-                var subTextField = buttonType.GetField("_SubText", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                if (subTextField != null)
-                {
-                    var textComponent = subTextField.GetValue(button);
-                    if (textComponent != null)
-                    {
-                        var textProp = textComponent.GetType().GetProperty("text", BindingFlags.Public | BindingFlags.Instance);
-                        if (textProp != null)
-                        {
-                            var textValue = textProp.GetValue(textProp);
-                            if (textValue != null && !string.IsNullOrEmpty(textValue.ToString()))
-                            {
-                                MelonLoader.MelonLogger.Msg($"[GetButtonText] Found text via _SubText: \"{textValue}\"");
-                                return textValue.ToString();
-                            }
-                        }
-                    }
-                }
-                
-                // Fallback: Try GameObject name cleanup
+                var candidates = new List<string>();
                 var monoBehaviour = button as MonoBehaviour;
+
+                if (CKAccessibilityMod.DebugTextExtraction)
+                    MelonLoader.MelonLogger.Msg($"[GetButtonText] Button type: {buttonType.FullName}, GO: {monoBehaviour?.gameObject.name ?? "null"}");
+
+                // STRATEGY 1: Direct IL2CPP component access (fastest, most reliable)
+                // NOTE: Commented out because TMPro types may not be directly accessible in this game
+                // Will rely on reflection-based strategies instead
+                /*
                 if (monoBehaviour != null)
                 {
+                    try
+                    {
+                        // Try direct GetComponent using TMPro types from Unity.TextMeshPro assembly
+                        // MelonLoader exposes these as TMPro.* types after IL2CPP interop generation
+                        var tmpComponent = monoBehaviour.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+                        if (tmpComponent != null && !string.IsNullOrWhiteSpace(tmpComponent.text))
+                        {
+                            if (CKAccessibilityMod.DebugTextExtraction)
+                                MelonLoader.MelonLogger.Msg($"[GetButtonText] Direct TMP access: \"{tmpComponent.text}\"");
+                            return tmpComponent.text;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (CKAccessibilityMod.DebugTextExtraction)
+                            MelonLoader.MelonLogger.Warning($"[GetButtonText] Direct TMP access failed: {ex.Message}");
+                    }
+                }
+                */
+
+                // STRATEGY 2: Reflection-based search for TextMeshProUGUI components
+                if (monoBehaviour != null)
+                {
+                    // Get all child GameObjects and check each for TextMeshProUGUI component
+                    Transform[] allTransforms = monoBehaviour.GetComponentsInChildren<Transform>(true);
+                    if (CKAccessibilityMod.DebugTextExtraction)
+                        MelonLoader.MelonLogger.Msg($"[GetButtonText] Found {allTransforms.Length} child transforms");
+                    
+                    // DETAILED INSPECTION: Log ALL child transforms and their components
+                    if (CKAccessibilityMod.DebugTextExtraction)
+                    {
+                        MelonLoader.MelonLogger.Msg($"[GetButtonText] Inspecting ALL {allTransforms.Length} child transforms:");
+                        foreach (var trans in allTransforms)
+                        {
+                            Component[] comps = trans.GetComponents<Component>();
+                            MelonLoader.MelonLogger.Msg($"  GameObject: {trans.gameObject.name} ({comps.Length} components):");
+                            foreach (var c in comps)
+                            {
+                                if (c != null)
+                                {
+                                    // Use GetIl2CppType() for actual IL2CPP type name
+                                    var il2cppType = c.GetIl2CppType();
+                                    string typeName = il2cppType.FullName;
+                                    MelonLoader.MelonLogger.Msg($"    - {typeName}");
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Only inspect first child for detailed logging if no detailed inspection
+                    if (CKAccessibilityMod.DebugTextExtraction && allTransforms.Length > 1 && false)
+                    {
+                        Component[] firstComps = allTransforms[1].GetComponents<Component>();
+                        MelonLoader.MelonLogger.Msg($"[GetButtonText] Components on {allTransforms[1].gameObject.name}:");
+                        foreach (var c in firstComps)
+                        {
+                            if (c != null)
+                            {
+                                // Get managed type info
+                                var managedType = c.GetType();
+                                string typeName = managedType.FullName;
+                                string assemblyName = managedType.Assembly.GetName().Name;
+                                
+                                // Try getting the IL2CPP type if available
+                                try
+                                {
+                                    var il2cppTypeMethod = managedType.GetProperty("Il2CppType", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                                    if (il2cppTypeMethod != null)
+                                    {
+                                        var il2cppType = il2cppTypeMethod.GetValue(c);
+                                        typeName += $" (IL2CPP: {il2cppType})";
+                                    }
+                                }
+                                catch { }
+                                
+                                MelonLoader.MelonLogger.Msg($"  - {typeName}");
+                                MelonLoader.MelonLogger.Msg($"    Assembly: {assemblyName} | ToString: {c}");
+                                
+                                // Probe for text property
+                                var textProp = managedType.GetProperty("text", BindingFlags.Public | BindingFlags.Instance);
+                                if (textProp != null)
+                                {
+                                    try
+                                    {
+                                        var textValue = textProp.GetValue(c);
+                                        MelonLoader.MelonLogger.Msg($"    text property: \"{textValue}\"");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        MelonLoader.MelonLogger.Msg($"    text property: ERROR - {ex.Message}");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // STRATEGY 2: Find TextMeshProUGUI components directly by searching children
+                    // We know from inspection that TextMeshProUGUI exists on "Button Text Common" GameObjects
+                    try
+                    {
+                        if (CKAccessibilityMod.DebugTextExtraction)
+                            MelonLoader.MelonLogger.Msg("[GetButtonText] Searching for TextMeshProUGUI components in children...");
+                        
+                        // Search all child GameObjects for TextMeshProUGUI components
+                        foreach (var childTransform in allTransforms)
+                        {
+                            Component[] childComps = childTransform.GetComponents<Component>();
+                            foreach (var comp in childComps)
+                            {
+                                if (comp != null)
+                                {
+                                    var il2cppType = comp.GetIl2CppType();
+                                    // Check if this is a TextMeshProUGUI component
+                                    if (il2cppType.FullName == "TMPro.TextMeshProUGUI")
+                                    {
+                                        if (CKAccessibilityMod.DebugTextExtraction)
+                                            MelonLoader.MelonLogger.Msg($"[GetButtonText] Found TextMeshProUGUI on {childTransform.gameObject.name}");
+                                        
+                                        // Use IL2CPP type to get the text property, not the managed wrapper type
+                                        try
+                                        {
+                                            var textProp = il2cppType.GetProperty("text");
+                                            if (textProp != null)
+                                            {
+                                                if (CKAccessibilityMod.DebugTextExtraction)
+                                                    MelonLoader.MelonLogger.Msg($"[GetButtonText]   Found 'text' property on IL2CPP type");
+                                                
+                                                // GetValue needs to work with IL2CPP object
+                                                var textValue = textProp.GetValue(comp, null);
+                                                // Convert Il2CppSystem.Object to string
+                                                string textString = textValue?.ToString();
+                                                
+                                                if (CKAccessibilityMod.DebugTextExtraction)
+                                                    MelonLoader.MelonLogger.Msg($"[GetButtonText]   text value: \"{textString}\"");
+                                                
+                                                if (!string.IsNullOrWhiteSpace(textString))
+                                                {
+                                                    candidates.Add(textString);
+                                                    if (CKAccessibilityMod.DebugTextExtraction)
+                                                        MelonLoader.MelonLogger.Msg($"[GetButtonText] ✓ Extracted text: \"{textString}\" from {childTransform.gameObject.name}");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (CKAccessibilityMod.DebugTextExtraction)
+                                                    MelonLoader.MelonLogger.Warning($"[GetButtonText]   'text' property NOT FOUND on IL2CPP type");
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            if (CKAccessibilityMod.DebugTextExtraction)
+                                                MelonLoader.MelonLogger.Warning($"[GetButtonText] Error extracting text from TMP: {ex.Message}");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (CKAccessibilityMod.DebugTextExtraction)
+                            MelonLoader.MelonLogger.Warning($"[GetButtonText] TextMeshProUGUI search error: {ex.Message}");
+                    }
+
+                    // Fallback: Try Unity UI Text components
+                    if (candidates.Count == 0)
+                    {
+                        var uiTexts = monoBehaviour.GetComponentsInChildren<UnityEngine.UI.Text>(true);
+                        foreach (var uiText in uiTexts)
+                        {
+                            if (!string.IsNullOrWhiteSpace(uiText.text))
+                            {
+                                candidates.Add(uiText.text);
+                                if (CKAccessibilityMod.DebugTextExtraction)
+                                    MelonLoader.MelonLogger.Msg($"[GetButtonText] UI.Text component found: \"{uiText.text}\"");
+                            }
+                        }
+                    }
+
+                    // STRATEGY 3: Try STETextBlock components via reflection (game-specific component)
+                    if (candidates.Count == 0)
+                    {
+                        var children = monoBehaviour.GetComponentsInChildren<MonoBehaviour>(true);
+                        foreach (var child in children)
+                        {
+                            var childType = child.GetType();
+                            if (childType.Name == "STETextBlock" || childType.Name.Contains("STEText"))
+                            {
+                                // Try properties: text, Text
+                                var textProp = childType.GetProperty("text") ?? childType.GetProperty("Text");
+                                if (textProp != null)
+                                {
+                                    var value = textProp.GetValue(child);
+                                    if (value != null && !string.IsNullOrWhiteSpace(value.ToString()))
+                                    {
+                                        candidates.Add(value.ToString());
+                                        if (CKAccessibilityMod.DebugTextExtraction)
+                                            MelonLoader.MelonLogger.Msg($"[GetButtonText] STETextBlock property: \"{value}\"");
+                                    }
+                                }
+                                else
+                                {
+                                    // Try private fields: _text, _Text, m_text
+                                    var textField = childType.GetField("_text", BindingFlags.NonPublic | BindingFlags.Instance)
+                                        ?? childType.GetField("_Text", BindingFlags.NonPublic | BindingFlags.Instance)
+                                        ?? childType.GetField("m_text", BindingFlags.NonPublic | BindingFlags.Instance);
+                                    if (textField != null)
+                                    {
+                                        var value = textField.GetValue(child);
+                                        if (value != null && !string.IsNullOrWhiteSpace(value.ToString()))
+                                        {
+                                            candidates.Add(value.ToString());
+                                            if (CKAccessibilityMod.DebugTextExtraction)
+                                                MelonLoader.MelonLogger.Msg($"[GetButtonText] STETextBlock field: \"{value}\"");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Get canonical label
+                var canonicalLabel = TextExtractionUtils.GetCanonicalLabel(candidates);
+
+                if (CKAccessibilityMod.DebugTextExtraction)
+                {
+                    MelonLoader.MelonLogger.Msg($"[GetButtonText] Candidates: [{string.Join(", ", candidates.Select(c => $"\"{c}\""))}] -> Canonical: \"{canonicalLabel}\"");
+                }
+
+                // Fallback to cleaned GameObject name if no text found
+                if (string.IsNullOrWhiteSpace(canonicalLabel) && monoBehaviour != null)
+                {
                     var gameObjectName = monoBehaviour.gameObject.name;
-                    // Clean up GameObject names for better speech
                     gameObjectName = gameObjectName
                         .Replace("Button", "")
                         .Replace("UI/", "")
                         .Replace(" - #", " ")
                         .Replace("MainMenu", "Main Menu")
                         .Trim();
-                    
-                    MelonLoader.MelonLogger.Msg($"[GetButtonText] Using cleaned GameObject name: \"{gameObjectName}\"");
-                    return gameObjectName;
+                    canonicalLabel = gameObjectName;
+                    if (CKAccessibilityMod.DebugTextExtraction)
+                        MelonLoader.MelonLogger.Msg($"[GetButtonText] Using fallback GO name: \"{canonicalLabel}\"");
                 }
                 
-                return "Button";
+                return canonicalLabel;
             }
             catch (Exception ex)
             {
@@ -539,41 +735,90 @@ namespace CKFlashpointAccessibility.Patches
                 var monoBehaviour = widget as MonoBehaviour;
                 if (monoBehaviour == null) return string.Empty;
 
-                // Try to find text components using reflection
-                var children = monoBehaviour.GetComponentsInChildren<MonoBehaviour>();
+                var candidates = new List<string>();
+
+                if (CKAccessibilityMod.DebugTextExtraction)
+                    MelonLoader.MelonLogger.Msg($"[GetWidgetText] Widget type: {widget.GetType().FullName}, GO: {monoBehaviour.gameObject.name}");
+
+                // PRIMARY: Try TextMeshPro components (IL2CPP compatible)
+                var children = monoBehaviour.GetComponentsInChildren<MonoBehaviour>(true);
                 foreach (var child in children)
                 {
-                    if (child.GetType().Name == "STETextBlock")
+                    var childType = child.GetType();
+                    if (childType.Name.Contains("TextMeshPro"))
                     {
-                        var textProp = child.GetType().GetProperty("text") ?? child.GetType().GetProperty("Text");
+                        var textProp = childType.GetProperty("text", BindingFlags.Public | BindingFlags.Instance);
                         if (textProp != null)
                         {
                             var value = textProp.GetValue(child);
-                            if (value != null) return value.ToString();
+                            if (value != null && !string.IsNullOrWhiteSpace(value.ToString()))
+                            {
+                                candidates.Add(value.ToString());
+                                if (CKAccessibilityMod.DebugTextExtraction)
+                                    MelonLoader.MelonLogger.Msg($"[GetWidgetText] TextMeshPro found: \"{value}\" on {child.gameObject.name}");
+                            }
                         }
                     }
                 }
 
-                // Try TextMeshPro
-                foreach (var child in children)
+                // Fallback: Try STETextBlock components
+                if (candidates.Count == 0)
                 {
-                    if (child.GetType().Name.Contains("TextMeshPro"))
+                    foreach (var child in children)
                     {
-                        var textProp = child.GetType().GetProperty("text");
-                        if (textProp != null)
+                        if (child.GetType().Name == "STETextBlock")
                         {
-                            var value = textProp.GetValue(child);
-                            if (value != null && !string.IsNullOrEmpty(value.ToString()))
-                                return value.ToString();
+                            var textProp = child.GetType().GetProperty("text") ?? child.GetType().GetProperty("Text");
+                            if (textProp != null)
+                            {
+                                var value = textProp.GetValue(child);
+                                if (value != null && !string.IsNullOrWhiteSpace(value.ToString()))
+                                {
+                                    candidates.Add(value.ToString());
+                                    if (CKAccessibilityMod.DebugTextExtraction)
+                                        MelonLoader.MelonLogger.Msg($"[GetWidgetText] STETextBlock found: \"{value}\"");
+                                }
+                            }
                         }
                     }
+                }
+
+                // Try Unity UI Text
+                if (candidates.Count == 0)
+                {
+                    var uiTexts = monoBehaviour.GetComponentsInChildren<UnityEngine.UI.Text>(true);
+                    foreach (var uiText in uiTexts)
+                    {
+                        if (!string.IsNullOrWhiteSpace(uiText.text))
+                        {
+                            candidates.Add(uiText.text);
+                            if (CKAccessibilityMod.DebugTextExtraction)
+                                MelonLoader.MelonLogger.Msg($"[GetWidgetText] UI.Text found: \"{uiText.text}\"");
+                        }
+                    }
+                }
+
+                // Get canonical label
+                var canonicalLabel = TextExtractionUtils.GetCanonicalLabel(candidates);
+
+                if (CKAccessibilityMod.DebugTextExtraction)
+                {
+                    MelonLoader.MelonLogger.Msg($"[GetWidgetText] Candidates: [{string.Join(", ", candidates.Select(c => $"\"{c}\""))}] -> Canonical: \"{canonicalLabel}\"");
                 }
 
                 // Fallback to GameObject name
-                return monoBehaviour.gameObject.name;
+                if (string.IsNullOrWhiteSpace(canonicalLabel))
+                {
+                    canonicalLabel = monoBehaviour.gameObject.name;
+                    if (CKAccessibilityMod.DebugTextExtraction)
+                        MelonLoader.MelonLogger.Msg($"[GetWidgetText] Using fallback GO name: \"{canonicalLabel}\"");
+                }
+
+                return canonicalLabel;
             }
-            catch
+            catch (Exception ex)
             {
+                MelonLoader.MelonLogger.Error($"[GetWidgetText] Exception: {ex.Message}");
                 return widget.GetType().Name;
             }
         }

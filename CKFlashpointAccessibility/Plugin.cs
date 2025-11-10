@@ -16,12 +16,18 @@ namespace CKFlashpointAccessibility
         private static MelonPreferences_Entry<bool> _announceButtons;
         private static MelonPreferences_Entry<int> _speechDelay;
         private static MelonPreferences_Entry<bool> _interruptSpeech;
+        private static MelonPreferences_Entry<bool> _aggregateLabels;
+        private static MelonPreferences_Entry<bool> _announceTypedChar;
+        private static MelonPreferences_Entry<bool> _debugTextExtraction;
 
         public static bool ModEnabled => _modEnabled?.Value ?? true;
         public static bool AnnounceMenuItems => _announceMenuItems?.Value ?? true;
         public static bool AnnounceButtons => _announceButtons?.Value ?? true;
         public static int SpeechDelay => _speechDelay?.Value ?? 100;
         public static bool InterruptSpeech => _interruptSpeech?.Value ?? true;
+        public static bool AggregateLabels => _aggregateLabels?.Value ?? true;
+        public static bool AnnounceTypedChar => _announceTypedChar?.Value ?? true;
+        public static bool DebugTextExtraction => _debugTextExtraction?.Value ?? false;
 
         public override void OnInitializeMelon()
         {
@@ -32,6 +38,9 @@ namespace CKFlashpointAccessibility
             _announceButtons = _configCategory.CreateEntry("AnnounceButtons", true, "Announce buttons when hovered/focused");
             _speechDelay = _configCategory.CreateEntry("SpeechDelay", 100, "Delay between speech announcements (ms)");
             _interruptSpeech = _configCategory.CreateEntry("InterruptPrevious", true, "Interrupt previous speech");
+            _aggregateLabels = _configCategory.CreateEntry("AggregateLabels", true, "Aggregate text from multiple UI sources for complete labels");
+            _announceTypedChar = _configCategory.CreateEntry("AnnounceTypedChar", true, "Announce individual characters when typing in text inputs");
+            _debugTextExtraction = _configCategory.CreateEntry("DebugTextExtraction", false, "Log detailed text extraction info for debugging");
 
             if (!ModEnabled)
             {
